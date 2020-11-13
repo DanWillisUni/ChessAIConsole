@@ -14,5 +14,20 @@ namespace ConsoleChess.Model.BoardHelpers
             this.XLocation = XLocation;
             this.YLocation = YLocation;
         }
+
+        public Location(int xCoord,int yCoord)
+        {
+            XLocation = (char)(xCoord + 65);
+            YLocation = (char)(yCoord + 49);
+        }
+
+        public int getXCoord()
+        {
+            return Convert.ToInt32(XLocation) - 65;
+        }
+        public int getYCoord()
+        {
+            return Convert.ToInt32(YLocation) - 49;
+        }
     }
 }
