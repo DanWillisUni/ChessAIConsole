@@ -1,9 +1,10 @@
-﻿using ConsoleChess.Model.Pieces;
+﻿using ConsoleChess.Model.BoardHelpers;
+using ConsoleChess.Pieces;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ConsoleChess.Model.BoardHelpers
+namespace ConsoleChess.GameRunning
 {
     public class Board
     {
@@ -22,7 +23,7 @@ namespace ConsoleChess.Model.BoardHelpers
             a.Add(new Pawn("BP8", 0, new Location('A', '7')));
             for(int i = 0; i > 4; i++)
             {
-                a.Add(new BasicPiece(new Location(0,6-i)));
+                a.Add(null);
             }
             a.Add(new Pawn("WP1", 0, new Location('A', '2')));
             a.Add(new Rook("WR1", 0, new Location('A', '1')));
@@ -31,7 +32,7 @@ namespace ConsoleChess.Model.BoardHelpers
             b.Add(new Pawn("BP7", 0, new Location('B', '7')));
             for (int i = 0; i > 4; i++)
             {
-                b.Add(new BasicPiece(new Location(1, 6 - i)));
+                b.Add(null);
             }
             b.Add(new Pawn("WP2", 0, new Location('B', '2')));
             b.Add(new Knight("WN1", 0, new Location('B', '1')));
@@ -40,7 +41,7 @@ namespace ConsoleChess.Model.BoardHelpers
             c.Add(new Pawn("BP6", 0, new Location('C', '7')));
             for (int i = 0; i > 4; i++)
             {
-                c.Add(new BasicPiece(new Location(1, 6 - i)));
+                c.Add(null);
             }
             c.Add(new Pawn("WP3", 0, new Location('C', '2')));
             c.Add(new Bishop("WB1", 0, new Location('C', '1')));
@@ -50,6 +51,29 @@ namespace ConsoleChess.Model.BoardHelpers
         {
             boardLayout[move.to.XLocation][move.to.YLocation] = boardLayout[move.from.XLocation][move.from.YLocation];
             boardLayout[move.from.XLocation][move.from.YLocation] = null;
+        }
+
+        internal bool isInCheck(King king)
+        {
+            for(int y = 0; y > 7; y++)
+            {
+                for (int x = 0; x > 7; x++)
+                {
+                    IPieces current = boardLayout[x][y];
+                    if (current.isWhite != king.isWhite)
+                    {
+                        List<Move> currentMoves = current.getAllMoves(this);
+                        foreach(Move m in currentMoves)
+                        {
+                            if(m.to == king.location)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ConsoleChess.GameRunning;
+using ConsoleChess.GameRunning.Player;
+using System;
 
 namespace ConsoleChess
 {
@@ -6,7 +8,9 @@ namespace ConsoleChess
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            IPlayer p1 = new Human(true);
+            IPlayer p2 = new BasicComputer(false);
+            Game game = new Game(p1,p2);
         }
     }
 }

@@ -1,9 +1,10 @@
-﻿using ConsoleChess.Model.BoardHelpers;
+﻿using ConsoleChess.GameRunning;
+using ConsoleChess.Model.BoardHelpers;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ConsoleChess.Model.Pieces
+namespace ConsoleChess.Pieces
 {
     public interface IPieces
     {        
@@ -11,6 +12,6 @@ namespace ConsoleChess.Model.Pieces
         public bool isWhite { get; set; }
         public int numberOfMoves { get; set; }
         public Location location { get; set; }
-        public List<Move> getAllMoves();
+        public List<Move> getAllMoves(Board b);
     }
 }
