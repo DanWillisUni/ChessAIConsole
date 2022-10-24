@@ -8,7 +8,7 @@ namespace ConsoleChess.Pieces
 {
     public class Pawn : BasicPiece , IPieces
     {
-        char moveType { get; set; }
+        public char moveType { get; set; }
 
         public Pawn(string id, int numberOfMoves, Location location) : base(id, numberOfMoves, location)
         {

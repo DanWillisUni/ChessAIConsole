@@ -20,6 +20,7 @@ namespace ConsoleChess.Model.BoardHelpers
             XLocation = (char)(xCoord + 65);
             YLocation = (char)(yCoord + 49);
         }
+        public Location(string s) : this(s[0], s[1]) { }        
 
         public int getXCoord()
         {
@@ -28,6 +29,6 @@ namespace ConsoleChess.Model.BoardHelpers
         public int getYCoord()
         {
             return Convert.ToInt32(YLocation) - 49;
-        }
+        }      
     }
 }

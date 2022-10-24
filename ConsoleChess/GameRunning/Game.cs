@@ -22,5 +22,30 @@ namespace ConsoleChess.GameRunning
             this.black = black;
             pastMoves = new List<Move>();
         }
+
+        public void Start()
+        {
+            for(int i = 0; i < 3; i++)
+            {
+
+                if (isWhitesTurn)
+                {
+                    white.makeTurn();
+                    isWhitesTurn = false;
+                } else {
+                    black.makeTurn();
+                    isWhitesTurn = true;
+                }
+            }            
+        }
+
+        private bool isStalemate()
+        {
+            throw new NotImplementedException();
+        }
+        private bool isCheckmate()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

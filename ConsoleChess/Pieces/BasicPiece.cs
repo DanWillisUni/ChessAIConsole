@@ -22,7 +22,52 @@ namespace ConsoleChess.Pieces
         #region peice movement
         public static List<Move> getPossibleMovesPawn(Pawn pieceToMove,Board board)
         {
-            throw new NotImplementedException();
+            //Handle Promotions
+            if (pieceToMove.moveType == 'Q')
+            {
+                return getPossibleMovesQueen(pieceToMove,board);
+            }
+            else if (pieceToMove.moveType == 'B')
+            {
+                return getPossibleMovesBishop(pieceToMove, board);
+            }
+            else if (pieceToMove.moveType == 'R')
+            {
+                return getPossibleMovesRook(pieceToMove, board);
+            }
+            else if (pieceToMove.moveType == 'K')
+            {
+                return getPossibleMovesKnight(pieceToMove, board);
+            }
+
+            List<Move> moves = new List<Move>();
+            int fromXCoord = pieceToMove.location.getXCoord();
+            int fromYCoord = pieceToMove.location.getYCoord();
+            int forwardMultiplyer = 1;
+            if (pieceToMove.isWhite)
+            {
+                forwardMultiplyer = -1;
+            }
+
+            if (board.boardLayout[fromXCoord][fromYCoord + forwardMultiplyer] == null)
+            {
+                if (pieceToMove.numberOfMoves == 0)
+                {
+                    if (board.boardLayout[fromXCoord][fromYCoord + (2*forwardMultiplyer)] == null)
+                    {
+                        moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + (2 * forwardMultiplyer), fromYCoord)));
+                    }
+                }
+                moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + forwardMultiplyer, fromYCoord)));
+            }
+
+
+
+            //still need enpassant
+
+            
+            
+            return moves;
         }
         public static List<Move> getPossibleMovesRook(IPieces pieceToMove, Board board)
         {
@@ -65,10 +110,7 @@ namespace ConsoleChess.Pieces
         public static List<Move> getPossibleMovesQueen(IPieces pieceToMove, Board board)
         {
             List<Move> all = getPossibleMovesBishop(pieceToMove, board);
-            foreach(Move m in getPossibleMovesBishop(pieceToMove, board))
-            {
-                all.Add(m);
-            }
+            all.AddRange(getPossibleMovesRook(pieceToMove, board));
             return all;
         }
         public static List<Move> getPossibleMovesKing(King pieceToMove, Board board)

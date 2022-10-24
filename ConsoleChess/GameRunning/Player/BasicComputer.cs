@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ConsoleChess.GameRunning.Player
 {
-    public class BasicComputer : IPlayer
+    public class BasicComputer : BasicPlayer, IPlayer
     {
         public bool isWhite { get; set; }
         public BasicComputer(bool isWhite)
@@ -15,7 +15,9 @@ namespace ConsoleChess.GameRunning.Player
 
         public Move makeTurn()
         {
-            throw new NotImplementedException();
+            List<Move> all = getAllMoves();
+            Random random = new Random();
+            return all[random.Next(all.Count)];
         }
     }
 }
