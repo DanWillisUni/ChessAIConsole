@@ -8,6 +8,6 @@ namespace ConsoleChess.GameRunning.Player
     public interface IPlayer
     {
         public bool isWhite { get; set; }
-        public Move makeTurn();
+        public Move makeTurn(Board board);
     }
 }

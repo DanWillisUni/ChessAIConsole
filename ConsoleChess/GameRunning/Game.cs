@@ -27,15 +27,16 @@ namespace ConsoleChess.GameRunning
         {
             for(int i = 0; i < 3; i++)
             {
-
+                Move m = null;
                 if (isWhitesTurn)
                 {
-                    white.makeTurn();
+                    m = white.makeTurn(board);
                     isWhitesTurn = false;
                 } else {
-                    black.makeTurn();
+                    m = black.makeTurn(board);
                     isWhitesTurn = true;
                 }
+                pastMoves.Add(m);
             }            
         }
 

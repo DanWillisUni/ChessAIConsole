@@ -49,11 +49,11 @@ namespace ConsoleChess.Pieces
                 forwardMultiplyer = -1;
             }
 
-            if (board.boardLayout[fromXCoord][fromYCoord + forwardMultiplyer] == null)
+            if (board.layout[fromXCoord,fromYCoord + forwardMultiplyer] == "")
             {
                 if (pieceToMove.numberOfMoves == 0)
                 {
-                    if (board.boardLayout[fromXCoord][fromYCoord + (2*forwardMultiplyer)] == null)
+                    if (board.layout[fromXCoord,fromYCoord + (2*forwardMultiplyer)] == "")
                     {
                         moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + (2 * forwardMultiplyer), fromYCoord)));
                     }
@@ -127,9 +127,8 @@ namespace ConsoleChess.Pieces
                     {
                         if (!(fromXCoord + x < 0 || fromXCoord + x > 7 || fromYCoord + y > 7 || fromYCoord + y < 0))
                         {
-                            List<IPieces> xLine = board.boardLayout[fromXCoord + x];
-                            IPieces current = xLine[fromYCoord + y];
-                            if (current == null || current.isWhite != pieceToMove.isWhite)
+                            string current = board.layout[fromXCoord + x,fromYCoord + y];
+                            if (current == "" || (pieceToMove.isWhite ? current[0] == 'B' : current[0] == 'W'))
                             {
                                 if (!board.isInCheck(pieceToMove))
                                 {
@@ -159,15 +158,14 @@ namespace ConsoleChess.Pieces
                 } 
                 else
                 {
-                    List<IPieces> xLine = board.boardLayout[fromXCoord + (x * count)];
-                    IPieces current = xLine[fromYCoord + (y * count)];
-                    if (current == null)
+                    string current = board.layout[fromXCoord + (x * count),fromYCoord + (y * count)];
+                    if (current == "")
                     {
                         moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + (x * count), fromYCoord + (y * count))));
                     }
                     else
                     { 
-                        if (current.isWhite != pieceToMove.isWhite)
+                        if (pieceToMove.isWhite ? current[0] == 'B' : current[0] == 'W')
                         {
                             moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + (x * count), fromYCoord + (y * count))));
                         }

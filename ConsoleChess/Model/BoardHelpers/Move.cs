@@ -6,13 +6,13 @@ namespace ConsoleChess.Model.BoardHelpers
 {
     public class Move
     {
-        public Location from { get; set; }
-        public Location to { get; set; }
+        public Location fromLocation { get; set; }
+        public Location toLocation { get; set; }
 
         public Move (Location from,Location to)
         {
-            this.from = from;
-            this.to = to;
+            this.fromLocation = from;
+            this.toLocation = to;
         }
 
         public bool isValid()

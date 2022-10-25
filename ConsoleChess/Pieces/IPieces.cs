@@ -13,5 +13,6 @@ namespace ConsoleChess.Pieces
         public int numberOfMoves { get; set; }
         public Location location { get; set; }
         public List<Move> getAllMoves(Board b);
+
     }
 }

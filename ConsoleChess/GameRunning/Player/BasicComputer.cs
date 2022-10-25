@@ -13,9 +13,9 @@ namespace ConsoleChess.GameRunning.Player
             this.isWhite = isWhite;
         }
 
-        public Move makeTurn()
+        public Move makeTurn(Board b)
         {
-            List<Move> all = getAllMoves();
+            List<Move> all = getAllMoves(isWhite,b);
             Random random = new Random();
             return all[random.Next(all.Count)];
         }

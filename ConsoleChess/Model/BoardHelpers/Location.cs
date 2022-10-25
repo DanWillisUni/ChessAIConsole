@@ -20,7 +20,9 @@ namespace ConsoleChess.Model.BoardHelpers
             XLocation = (char)(xCoord + 65);
             YLocation = (char)(yCoord + 49);
         }
-        public Location(string s) : this(s[0], s[1]) { }        
+        public Location(string s) : this(s[0], s[1]) { }  
+        
+        public Location() : this(0,0) { }
 
         public int getXCoord()
         {
