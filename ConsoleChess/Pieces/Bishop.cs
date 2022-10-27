@@ -11,7 +11,7 @@ namespace ConsoleChess.Pieces
         public Bishop(string id, int numberOfMoves, Location location) : base(id, numberOfMoves, location)
         { }
 
-        public List<Move> getAllMoves(Board b)
+        public List<Move> getPossibleMoves(Board b)
         {
             return getPossibleMovesBishop(this, b);
         }

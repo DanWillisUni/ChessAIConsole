@@ -36,6 +36,7 @@ namespace ConsoleChess.GameRunning
                     m = black.makeTurn(board);
                     isWhitesTurn = true;
                 }
+                board.makeMove(m);
                 pastMoves.Add(m);
             }            
         }

@@ -17,7 +17,7 @@ namespace ConsoleChess.GameRunning.Player
             List<Move> all = new List<Move>();
             foreach (IPieces p in pieces)
             {
-                all.AddRange(p.getAllMoves(b));
+                all.AddRange(p.getPossibleMoves(b));
             }            
             return all;
         }

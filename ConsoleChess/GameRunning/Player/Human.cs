@@ -20,18 +20,24 @@ namespace ConsoleChess.GameRunning.Player
             Move r = null;
             while (invalidMove)
             {
-                b.print(!isWhite);
+                b.print(isWhite);
                 Console.WriteLine("What peice would you like to move");
                 string fromStr = Console.ReadLine().ToUpper();
                 Console.WriteLine("Where would you like to move to");
                 string toStr = Console.ReadLine().ToUpper();
 
                 r = new Move(new Location(fromStr), new Location(toStr));
-                if (getAllMoves(isWhite,b).Contains(r))
+                List<Move> moves = getAllMoves(isWhite, b);
+                foreach(Move m in moves)
                 {
-                    invalidMove = false;
+                    if (m.Equals(r))
+                    {
+                        invalidMove = false;
+                        break;
+                    }
                 }
-                else
+                
+                if(invalidMove)
                 {
                     Console.WriteLine("Invalid move");
                     Console.ReadLine();

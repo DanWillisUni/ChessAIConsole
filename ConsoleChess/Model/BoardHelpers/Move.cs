@@ -19,5 +19,20 @@ namespace ConsoleChess.Model.BoardHelpers
         {
             throw new NotImplementedException();
         }
+
+        #region equals
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as Move);
+        }
+
+        public bool Equals(Move other)
+        {
+            if (other == null)
+                return false;
+
+            return this.fromLocation.Equals(other.fromLocation) && this.toLocation.Equals(other.toLocation);
+        }
+        #endregion
     }
 }

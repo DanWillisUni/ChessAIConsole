@@ -16,7 +16,7 @@ namespace ConsoleChess.Pieces
         }
 
 
-        public List<Move> getAllMoves(Board b)
+        public List<Move> getPossibleMoves(Board b)
         {
             switch (moveType)
             {

@@ -65,10 +65,14 @@ namespace ConsoleChess.GameRunning
         }
         public void makeMove(Move move)
         {
-            IPieces moving = allPeices.Where(o => o.location == move.fromLocation).Select(x => x).FirstOrDefault();
-            IPieces taken = allPeices.Where(o => o.location == move.toLocation).Select(x => x).FirstOrDefault();
-            taken.location = new Location();
+            IPieces moving = allPeices.Where(o => o.location.Equals(move.fromLocation)).Select(o => o).FirstOrDefault();
+            IPieces taken = allPeices.Where(o => o.location.Equals(move.toLocation)).Select(o => o).FirstOrDefault();
+            //taken.location = new Location();            
+            allPeices.Remove(taken);
+            allPeices.Remove(moving);
             moving.location = move.toLocation;
+            allPeices.Add(moving);
+            updateLayout();
         }
 
         public void print(bool fromWhitePerspective)
@@ -144,8 +148,7 @@ namespace ConsoleChess.GameRunning
             {
                 Console.Write("  " + xAxis[i] + "  ");
             }
-            Console.WriteLine();
-            //Console.ReadLine();           
+            Console.WriteLine();         
         }
         private void printBlankLine(ConsoleColor currentTileColour, ConsoleColor whiteTile, ConsoleColor blackTile)
         {

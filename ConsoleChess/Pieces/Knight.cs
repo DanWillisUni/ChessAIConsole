@@ -11,7 +11,7 @@ namespace ConsoleChess.Pieces
         public Knight(string id, int numberOfMoves, Location location) : base(id, numberOfMoves, location)
         { }
 
-        public List<Move> getAllMoves(Board b)
+        public List<Move> getPossibleMoves(Board b)
         {
             return getPossibleMovesKnight(this, b);
         }

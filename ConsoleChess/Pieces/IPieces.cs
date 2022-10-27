@@ -12,7 +12,7 @@ namespace ConsoleChess.Pieces
         public bool isWhite { get; set; }
         public int numberOfMoves { get; set; }
         public Location location { get; set; }
-        public List<Move> getAllMoves(Board b);
+        public List<Move> getPossibleMoves(Board b);
 
     }
 }

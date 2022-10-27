@@ -43,22 +43,18 @@ namespace ConsoleChess.Pieces
             List<Move> moves = new List<Move>();
             int fromXCoord = pieceToMove.location.getXCoord();
             int fromYCoord = pieceToMove.location.getYCoord();
-            int forwardMultiplyer = 1;
-            if (pieceToMove.isWhite)
-            {
-                forwardMultiplyer = -1;
-            }
+            int forwardMultiplyer = (pieceToMove.isWhite ? 1:-1);            
 
-            if (board.layout[fromXCoord,fromYCoord + forwardMultiplyer] == "")
+            if (String.IsNullOrEmpty(board.layout[fromXCoord, fromYCoord + forwardMultiplyer]))
             {
                 if (pieceToMove.numberOfMoves == 0)
                 {
-                    if (board.layout[fromXCoord,fromYCoord + (2*forwardMultiplyer)] == "")
+                    if (String.IsNullOrEmpty(board.layout[fromXCoord,fromYCoord + (2*forwardMultiplyer)]))
                     {
-                        moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + (2 * forwardMultiplyer), fromYCoord)));
+                        moves.Add(new Move(pieceToMove.location, new Location(fromXCoord, fromYCoord + (2 * forwardMultiplyer))));
                     }
                 }
-                moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + forwardMultiplyer, fromYCoord)));
+                moves.Add(new Move(pieceToMove.location, new Location(fromXCoord, fromYCoord + forwardMultiplyer)));
             }
 
 
@@ -88,7 +84,8 @@ namespace ConsoleChess.Pieces
         }
         public static List<Move> getPossibleMovesKnight(IPieces pieceToMove, Board board)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return new List<Move>();
         }
         public static List<Move> getPossibleMovesBishop(IPieces pieceToMove, Board board)
         {
@@ -159,7 +156,7 @@ namespace ConsoleChess.Pieces
                 else
                 {
                     string current = board.layout[fromXCoord + (x * count),fromYCoord + (y * count)];
-                    if (current == "")
+                    if (String.IsNullOrEmpty(current))
                     {
                         moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + (x * count), fromYCoord + (y * count))));
                     }

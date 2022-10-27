@@ -14,7 +14,7 @@ namespace ConsoleChess.Pieces
             hasCastled = false;
         }
 
-        public List<Move> getAllMoves(Board b)
+        public List<Move> getPossibleMoves(Board b)
         {
             return getPossibleMovesKing(this,b);
 
