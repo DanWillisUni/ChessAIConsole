@@ -20,7 +20,7 @@ namespace ConsoleChess.GameRunning.Player
             Move r = null;
             while (invalidMove)
             {
-                b.print(isWhite);
+                b.print(!isWhite);
                 Console.WriteLine("What peice would you like to move");
                 string fromStr = Console.ReadLine().ToUpper();
                 Console.WriteLine("Where would you like to move to");

@@ -73,26 +73,99 @@ namespace ConsoleChess.GameRunning
 
         public void print(bool fromWhitePerspective)
         {
+            var whiteForgroud = ConsoleColor.Magenta;
+            var blackForgroud = ConsoleColor.Cyan;
+            var whiteTile = ConsoleColor.White;
+            var blackTile = ConsoleColor.Black;
+
+            List<char> xAxis = new List<char>() {'A','B','C','D','E','F','G','H'};
+            List<char> yAxis = new List<char>() { '1', '2', '3', '4', '5', '6', '7', '8' };
             int yStart = 0;
             int yEnd = 7;
             int yAdd = 1;
+            var currentTileColour = whiteTile;
             if (fromWhitePerspective)
             {
                 yStart = 7;
                 yEnd = 0;
                 yAdd = -1;
+                currentTileColour = blackTile;
             }
-            for(int y = yStart;y != yEnd + yAdd;y += yAdd)
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("   ");
+            for (int i = 0; i != 8; i += 1)
             {
-                string line = "";
-                for (int x = 0; x != 7; x += 1)
-                {
-                    line += layout[x,y] == null ? " " : layout[x,y][1].ToString();
-                }
-                Console.WriteLine(line);                
+                Console.Write("  " + xAxis[i] + "  ");
             }
             Console.WriteLine();
-            //Console.ReadLine();
+
+            for (int y = yStart; y != yEnd + yAdd; y += yAdd)
+            {
+                printBlankLine(currentTileColour,whiteTile,blackTile);
+
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(" " + yAxis[y] + " ");//axis
+
+                for (int x = 0; x != 8; x += 1)
+                {
+                    currentTileColour = (currentTileColour == blackTile ? whiteTile : blackTile);
+                    Console.BackgroundColor = currentTileColour;
+
+                    if (layout[x, y] == null)
+                    {
+                        Console.Write("     ");
+                    }
+                    else
+                    {
+                        Location l = new Location(x, y);
+                        IPieces current = this.allPeices.Where(o => o.location.XLocation == l.XLocation && o.location.YLocation == l.YLocation).Select(o => o).FirstOrDefault();
+                        string toWrite = current.id[1] != 'P' ? current.id[1].ToString(): ((Pawn)current).moveType.ToString();                                                
+                        Console.ForegroundColor = current.isWhite ? whiteForgroud : blackForgroud;    
+                        Console.Write("  " + toWrite + "  ");
+                    }                    
+                }
+
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine(" " + yAxis[y] + " ");//axis
+
+                printBlankLine(currentTileColour, whiteTile, blackTile);
+
+                currentTileColour = (currentTileColour == blackTile ? whiteTile : blackTile);
+                Console.BackgroundColor = currentTileColour;
+            }
+
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("   ");
+            for (int i = 0; i != 8; i += 1)
+            {
+                Console.Write("  " + xAxis[i] + "  ");
+            }
+            Console.WriteLine();
+            //Console.ReadLine();           
+        }
+        private void printBlankLine(ConsoleColor currentTileColour, ConsoleColor whiteTile, ConsoleColor blackTile)
+        {
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("   ");//space for axis on topline
+            for (int topX = 0; topX != 8; topX += 1)//print the top line
+            {
+                currentTileColour = (currentTileColour == blackTile ? whiteTile : blackTile);
+                Console.BackgroundColor = currentTileColour;
+
+                if (topX == 7)
+                {
+                    Console.WriteLine("     ");
+                }
+                else
+                {
+                    Console.Write("     ");
+                }
+            }
         }
         
         internal bool isInCheck(King king)
