@@ -57,11 +57,8 @@ namespace ConsoleChess.Pieces
                 moves.Add(new Move(pieceToMove.location, new Location(fromXCoord, fromYCoord + forwardMultiplyer)));
             }
 
-
-
-            //still need enpassant
-
-            
+            //need taking
+            //still need enpassant            
             
             return moves;
         }
@@ -84,8 +81,26 @@ namespace ConsoleChess.Pieces
         }
         public static List<Move> getPossibleMovesKnight(IPieces pieceToMove, Board board)
         {
-            //throw new NotImplementedException();
-            return new List<Move>();
+            List<Move> r = new List<Move>();
+            int fromXCoord = pieceToMove.location.getXCoord();
+            int fromYCoord = pieceToMove.location.getYCoord();
+
+            for(int x = -2; x <= 2; x++)
+            {
+                for (int y = -2; y <= 2; y++)
+                {
+                    if(x != 0 && y!= 0 && Math.Pow(x,2) != Math.Pow(y, 2) && (fromXCoord + x < 8) && (fromXCoord + x >= 0) && (fromYCoord + y < 8) && (fromYCoord + y >= 0))
+                    {
+                        string current = board.layout[fromXCoord + x, fromYCoord + y];
+                        if (String.IsNullOrEmpty(current) || (pieceToMove.isWhite ? current[0] == 'B' : current[0] == 'W'))
+                        {
+                            r.Add(new Move(pieceToMove.location, new Location(fromXCoord + x, fromYCoord + y)));
+                        }
+                    }
+                }
+            }                      
+
+            return r;
         }
         public static List<Move> getPossibleMovesBishop(IPieces pieceToMove, Board board)
         {
@@ -136,6 +151,9 @@ namespace ConsoleChess.Pieces
                     }
                 }
             }
+
+            //need castle
+
             return moves;
             
         }

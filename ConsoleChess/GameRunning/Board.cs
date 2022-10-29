@@ -10,12 +10,8 @@ namespace ConsoleChess.GameRunning
     public class Board
     {
         public List<IPieces> allPeices { get; set; }
-        public string[,] layout { get; set; }
-
-        public Board(bool isWhite)
-        {
-            throw new NotImplementedException();
-        } 
+        public List<Move> pastMoves { get; set; }
+        public string[,] layout { get; set; }                
 
         public Board()
         {
@@ -53,6 +49,7 @@ namespace ConsoleChess.GameRunning
             allPeices.Add(new Pawn("WP8", 0, new Location('H', '2')));
             allPeices.Add(new Rook("WR2", 0, new Location('H', '1')));
             updateLayout();
+            pastMoves = new List<Move>();
         }
 
         private void updateLayout()
@@ -73,6 +70,7 @@ namespace ConsoleChess.GameRunning
             moving.location = move.toLocation;
             allPeices.Add(moving);
             updateLayout();
+            pastMoves.Add(move);
         }
 
         public void print(bool fromWhitePerspective)
@@ -81,6 +79,8 @@ namespace ConsoleChess.GameRunning
             var blackForgroud = ConsoleColor.Cyan;
             var whiteTile = ConsoleColor.White;
             var blackTile = ConsoleColor.Black;
+            var highlightTile = ConsoleColor.Green;
+            List<Location> highlight = pastMoves.Count == 0 ? new List<Location>() : new List<Location>() { pastMoves[pastMoves.Count -1].toLocation,pastMoves[pastMoves.Count - 1].fromLocation };
 
             List<char> xAxis = new List<char>() {'A','B','C','D','E','F','G','H'};
             List<char> yAxis = new List<char>() { '1', '2', '3', '4', '5', '6', '7', '8' };
@@ -106,7 +106,7 @@ namespace ConsoleChess.GameRunning
 
             for (int y = yStart; y != yEnd + yAdd; y += yAdd)
             {
-                printBlankLine(currentTileColour,whiteTile,blackTile);
+                printBlankLine(currentTileColour,whiteTile,blackTile,y,highlight,highlightTile);
 
                 Console.BackgroundColor = ConsoleColor.Black;
                 Console.ForegroundColor = ConsoleColor.White;
@@ -116,6 +116,14 @@ namespace ConsoleChess.GameRunning
                 {
                     currentTileColour = (currentTileColour == blackTile ? whiteTile : blackTile);
                     Console.BackgroundColor = currentTileColour;
+                    foreach(Location l in highlight)
+                    {
+                        if(l.getXCoord() == x && l.getYCoord() == y)
+                        {
+                            Console.BackgroundColor = highlightTile;
+                            break;
+                        }
+                    }
 
                     if (layout[x, y] == null)
                     {
@@ -135,7 +143,7 @@ namespace ConsoleChess.GameRunning
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine(" " + yAxis[y] + " ");//axis
 
-                printBlankLine(currentTileColour, whiteTile, blackTile);
+                printBlankLine(currentTileColour, whiteTile, blackTile, y, highlight, highlightTile);
 
                 currentTileColour = (currentTileColour == blackTile ? whiteTile : blackTile);
                 Console.BackgroundColor = currentTileColour;
@@ -150,25 +158,28 @@ namespace ConsoleChess.GameRunning
             }
             Console.WriteLine();         
         }
-        private void printBlankLine(ConsoleColor currentTileColour, ConsoleColor whiteTile, ConsoleColor blackTile)
+        private void printBlankLine(ConsoleColor currentTileColour, ConsoleColor whiteTile, ConsoleColor blackTile, int y, List<Location> highlight, ConsoleColor highlightTile)
         {
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write("   ");//space for axis on topline
-            for (int topX = 0; topX != 8; topX += 1)//print the top line
+            for (int x = 0; x != 8; x += 1)//print the top line
             {
                 currentTileColour = (currentTileColour == blackTile ? whiteTile : blackTile);
                 Console.BackgroundColor = currentTileColour;
-
-                if (topX == 7)
+                foreach (Location l in highlight)
                 {
-                    Console.WriteLine("     ");
-                }
-                else
-                {
-                    Console.Write("     ");
-                }
+                    if (l.getXCoord() == x && l.getYCoord() == y)
+                    {
+                        Console.BackgroundColor = highlightTile;
+                        break;
+                    }
+                }                
+                Console.Write("     ");                
             }
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("");
         }
         
         internal bool isInCheck(King king)
