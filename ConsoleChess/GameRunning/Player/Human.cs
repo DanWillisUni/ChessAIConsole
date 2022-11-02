@@ -27,7 +27,7 @@ namespace ConsoleChess.GameRunning.Player
                 string toStr = Console.ReadLine().ToUpper();
 
                 r = new Move(new Location(fromStr), new Location(toStr));
-                List<Move> moves = getAllMoves(isWhite, b);
+                List<Move> moves = b.getAllMoves(isWhite);
                 foreach(Move m in moves)
                 {
                     if (m.Equals(r))

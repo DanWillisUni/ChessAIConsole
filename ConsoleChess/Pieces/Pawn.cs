@@ -6,6 +6,7 @@ using System.Text;
 
 namespace ConsoleChess.Pieces
 {
+    [Serializable]
     public class Pawn : BasicPiece , IPieces
     {
         public char moveType { get; set; }

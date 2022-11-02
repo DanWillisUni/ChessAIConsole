@@ -6,6 +6,7 @@ using System.Text;
 
 namespace ConsoleChess.Pieces
 {
+    [Serializable]
     public class Queen : BasicPiece,IPieces
     {
         public Queen(string id, int numberOfMoves, Location location) : base(id, numberOfMoves, location)

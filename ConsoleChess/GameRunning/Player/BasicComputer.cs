@@ -1,4 +1,5 @@
-﻿using ConsoleChess.Model.BoardHelpers;
+﻿using ConsoleChess.AI;
+using ConsoleChess.Model.BoardHelpers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,9 +16,8 @@ namespace ConsoleChess.GameRunning.Player
 
         public Move makeTurn(Board b)
         {
-            List<Move> all = getAllMoves(isWhite,b);
-            Random random = new Random();
-            return all[random.Next(all.Count)];
+            ComputerBase c = new ComputerBase();
+            return c.getMove(b,isWhite);
         }
     }
 }

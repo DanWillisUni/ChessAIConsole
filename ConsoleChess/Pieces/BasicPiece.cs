@@ -6,6 +6,7 @@ using System.Text;
 
 namespace ConsoleChess.Pieces
 {
+    [Serializable]
     public class BasicPiece
     {
         public string id { get; set; }

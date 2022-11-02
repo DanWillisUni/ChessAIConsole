@@ -4,6 +4,7 @@ using System.Text;
 
 namespace ConsoleChess.Model.BoardHelpers
 {
+    [Serializable]
     public class Move
     {
         public Location fromLocation { get; set; }

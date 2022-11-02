@@ -7,10 +7,11 @@ using System.Linq;
 
 namespace ConsoleChess.GameRunning
 {
+    [Serializable]
     public class Board
     {
         public List<IPieces> allPeices { get; set; }
-        public List<Move> pastMoves { get; set; }
+        public  List<Move> pastMoves { get; set; }
         public string[,] layout { get; set; }                
 
         public Board()
@@ -181,7 +182,20 @@ namespace ConsoleChess.GameRunning
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("");
         }
-        
+
+        public List<Move> getAllMoves(bool isWhite)
+        {
+            List<IPieces> pieces = (from p in this.allPeices
+                                    where p.isWhite == isWhite
+                                    select p).ToList();
+            List<Move> all = new List<Move>();
+            foreach (IPieces p in pieces)
+            {
+                all.AddRange(p.getPossibleMoves(this));
+            }
+            return all;
+        }
+
         internal bool isInCheck(King king)
         {/*
             for(int y = 0; y > 7; y++)

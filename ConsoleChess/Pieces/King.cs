@@ -6,6 +6,7 @@ using System.Text;
 
 namespace ConsoleChess.Pieces
 {
+    [Serializable]
     public class King : BasicPiece,IPieces
     {
         public bool hasCastled { get; set; } 
