@@ -1,6 +1,7 @@
 ﻿using ConsoleChess.AI.Model;
 using ConsoleChess.GameRunning;
 using ConsoleChess.Model.BoardHelpers;
+using ConsoleChess.Pieces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -23,7 +24,7 @@ namespace ConsoleChess.AI
             List<MoveResult> results = new List<MoveResult>();
             Parallel.For<List<MoveResult>>(0, all.Count, () => new List<MoveResult>(), (i, loop, threadResults) => //multithreaded for loop
             {
-                threadResults.AddRange(getMovesToPlay(all[(int)i], b, isWhite, 0));
+                threadResults.AddRange(getMovesToPlay(all[(int)i], b, isWhite, 1));
                 return threadResults;//return the thread results
             },
             (threadResults) => {
@@ -110,7 +111,16 @@ namespace ConsoleChess.AI
 
         private static int getScore(Board b,bool isWhite)
         {
-            return 0;
+            int r = 0;
+            Dictionary<Char,Int16> peiceValues = new Dictionary<Char, Int16>() { { 'P', 100 },{ 'B',300},{ 'N',300},{ 'R',500},{ 'Q',900},{ 'K',10000} }; 
+
+            foreach(IPieces p in b.allPeices)
+            {
+                char type = p.id[1] == 'P' ? ((Pawn)p).moveType : p.id[1];
+                int value = peiceValues[type];
+                r = (p.isWhite == isWhite) ? r + value : r - value;
+            }
+            return r;
         }
     }
 }
