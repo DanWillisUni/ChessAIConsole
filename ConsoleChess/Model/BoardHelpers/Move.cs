@@ -35,5 +35,8 @@ namespace ConsoleChess.Model.BoardHelpers
             return this.fromLocation.Equals(other.fromLocation) && this.toLocation.Equals(other.toLocation);
         }
         #endregion
+
+        public override string ToString() { return "From: " + fromLocation.ToString() + " To: " + toLocation.ToString(); }
+
     }
 }

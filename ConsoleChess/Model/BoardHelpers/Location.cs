@@ -47,5 +47,7 @@ namespace ConsoleChess.Model.BoardHelpers
 
             return this.XLocation.Equals(other.XLocation) && this.YLocation.Equals(other.YLocation);
         }
+
+        public override string ToString() { return XLocation.ToString() + YLocation.ToString(); }
     }
 }
