@@ -2,6 +2,7 @@
 using ConsoleChess.Model.BoardHelpers;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 
 namespace ConsoleChess.Pieces
@@ -58,9 +59,24 @@ namespace ConsoleChess.Pieces
                 moves.Add(new Move(pieceToMove.location, new Location(fromXCoord, fromYCoord + forwardMultiplyer)));
             }
 
-            //need taking
+            //taking
+            for (int i = -1; i < 2; i += 2)
+            {
+                if (fromXCoord + i >= 0 && fromXCoord + i <= 7)
+                {
+                    if (!String.IsNullOrEmpty(board.layout[fromXCoord + i, fromYCoord + forwardMultiplyer]))
+                    {
+                        char takeColour = (board.layout[fromXCoord + i, fromYCoord + forwardMultiplyer])[0];
+                        if (pieceToMove.isWhite ? takeColour == 'B' : takeColour == 'W')
+                        {
+                            moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + i, fromYCoord + forwardMultiplyer)));
+                        }
+                    }
+                }
+            }                
+
             //still need enpassant            
-            
+
             return moves;
         }
         public static List<Move> getPossibleMovesRook(IPieces pieceToMove, Board board)

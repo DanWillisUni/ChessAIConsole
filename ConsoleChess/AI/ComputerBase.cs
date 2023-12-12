@@ -12,19 +12,24 @@ namespace ConsoleChess.AI
     public class ComputerBase
     {
         private readonly object moveLock = new object();//mutex object for multi threading
+        private readonly Dictionary<Char, Int16> peiceValues = new Dictionary<Char, Int16>() { { 'P', 100 }, { 'B', 300 }, { 'N', 300 }, { 'R', 500 }, { 'Q', 900 }, { 'K', 10000 } };
         public Move getMove(Board b,bool isWhite)
         {
+            b.print(!isWhite);
             List<Move> all = b.getAllMoves(isWhite);
             if (b.pastMoves.Count < 6)
             {
+                Console.WriteLine("Searching openings...");
                 //search openings
                 //return if in openings db
             }
 
+            Console.WriteLine("Calculating...");
+
             List<MoveResult> results = new List<MoveResult>();
             Parallel.For<List<MoveResult>>(0, all.Count, () => new List<MoveResult>(), (i, loop, threadResults) => //multithreaded for loop
             {
-                threadResults.AddRange(getMovesToPlay(all[(int)i], b, isWhite, 1));
+                threadResults.Add(evaluateMove(all[(int)i], b, isWhite, 1));
                 return threadResults;//return the thread results
             },
             (threadResults) => {
@@ -52,9 +57,8 @@ namespace ConsoleChess.AI
             return r[random.Next(r.Count)];
         }  
         
-        private List<MoveResult> getMovesToPlay(Move firstMove,Board b,bool isWhite,int maxDepth)
+        private MoveResult evaluateMove(Move firstMove,Board b,bool isWhite,int maxDepth)
         {
-            List<MoveResult> r = new List<MoveResult>();
             int lowestScore = int.MaxValue;
             Board copy = b.DeepClone();
             copy.makeMove(firstMove);
@@ -76,15 +80,15 @@ namespace ConsoleChess.AI
                     lowestScore = getLowestScore(copy1, isWhite, 1, maxDepth);
                 }
             }
-            r.Add(new MoveResult(firstMove, lowestScore));
-            return r;
+            return new MoveResult(firstMove, lowestScore);
         }
         private int getLowestScore(Board b, bool isWhite,int currentDepth, int maxDepth)
         {
+            int highestLowScore = int.MinValue;
             List<Move> all = b.getAllMoves(isWhite);
-            int lowestScore = int.MaxValue;
             foreach (Move m in all)
-            {    
+            {
+                int lowestScore = int.MaxValue;
                 Board copy = b.DeepClone();
                 copy.makeMove(m);
                 List<Move> allCounters = copy.getAllMoves(!isWhite);
@@ -105,14 +109,16 @@ namespace ConsoleChess.AI
                         lowestScore = getLowestScore(copy1, isWhite, currentDepth + 1, maxDepth);
                     }
                 }
+                if(highestLowScore < lowestScore)
+                {
+                    highestLowScore = lowestScore;
+                }
             }
-            return lowestScore;
+            return highestLowScore;
         }
-
-        private static int getScore(Board b,bool isWhite)
+        private int getScore(Board b,bool isWhite)
         {
             int r = 0;
-            Dictionary<Char,Int16> peiceValues = new Dictionary<Char, Int16>() { { 'P', 100 },{ 'B',300},{ 'N',300},{ 'R',500},{ 'Q',900},{ 'K',10000} }; 
 
             foreach(IPieces p in b.allPeices)
             {
@@ -120,6 +126,12 @@ namespace ConsoleChess.AI
                 int value = peiceValues[type];
                 r = (p.isWhite == isWhite) ? r + value : r - value;
             }
+
+            // number of possible moves
+            // protected pieces value
+            // threatened peices
+            // threatened uprotected pieces
+            // if game is nearly over, number of king moves avialable
             return r;
         }
     }
