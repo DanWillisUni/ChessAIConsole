@@ -7,6 +7,7 @@ namespace ConsoleChess.Model.BoardHelpers
     [Serializable]
     public class Move
     {
+        public Move() { }
         public Location fromLocation { get; set; }
         public Location toLocation { get; set; }
 

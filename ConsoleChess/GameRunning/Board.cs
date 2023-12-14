@@ -218,6 +218,35 @@ namespace ConsoleChess.GameRunning
             }*/
             return false;
         }
-        
+
+        public string printAsString()
+        {
+            string r = "";
+            for (int y = 7; y != -1; y -= 1)
+            {
+                for (int x = 0; x != 8; x += 1)
+                {
+                    if (layout[x, y] == null)
+                    {
+                        r += " ";
+                    }
+                    else
+                    {
+                        Location l = new Location(x, y);
+                        IPieces current = this.allPeices.Where(o => o.location.XLocation == l.XLocation && o.location.YLocation == l.YLocation).Select(o => o).FirstOrDefault();
+                        string toWrite = current.id[1] != 'P' ? current.id[1].ToString() : ((Pawn)current).moveType.ToString();
+                        if (current.isWhite)
+                        {
+                            r += toWrite.ToUpper();
+                        }
+                        else
+                        {
+                            r += toWrite.ToLower();
+                        }
+                    }
+                }
+            }
+            return r;
+        }
     }
 }

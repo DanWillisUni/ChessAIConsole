@@ -5,22 +5,26 @@ using ConsoleChess.Pieces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ConsoleChess.AI
 {
     public class ComputerBase
     {
-        public ComputerBase(int maxDepth = 1, int maxWidth=3)
+        public ComputerBase(string openingFile, int maxDepth = 2, int maxWidth=3)
         {
+            this.openingFile = openingFile;
             this.maxDepth = maxDepth;
             this.maxWidth = maxWidth;
         }
         public int maxDepth { get; set; }
         public int maxWidth { get; set; }
-
+        public string openingFile {  get; set; }
 
         private readonly object moveLock = new object();//mutex object for multi threading
         private readonly Dictionary<Char, Int16> peiceValues = new Dictionary<Char, Int16>() { { 'P', 100 }, { 'B', 300 }, { 'N', 300 }, { 'R', 500 }, { 'Q', 900 }, { 'K', 10000 } };
@@ -30,8 +34,19 @@ namespace ConsoleChess.AI
             if (b.pastMoves.Count < 8)
             {
                 Console.WriteLine("Searching openings...");
-                //search openings
-                //return if in openings db
+                var lines = File.ReadAllLines(openingFile);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    var line = lines[i];
+                    var lineSplit = line.Split("!");
+                    if (b.printAsString() == lineSplit[0])
+                    {
+                        Console.WriteLine("Match");
+                        List<Move> r = JsonSerializer.Deserialize<List<Move>>(lineSplit[1]);
+                        Random random = new Random();
+                        return r[random.Next(r.Count)];
+                    }
+                }
             }
             return calculateMove(b, isWhite);
         }  
