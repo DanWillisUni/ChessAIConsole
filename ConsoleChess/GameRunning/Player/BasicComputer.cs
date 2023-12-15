@@ -1,4 +1,5 @@
 ﻿using ConsoleChess.AI;
+using ConsoleChess.AI.Openings;
 using ConsoleChess.Model.BoardHelpers;
 using System;
 using System.Collections.Generic;
@@ -9,16 +10,16 @@ namespace ConsoleChess.GameRunning.Player
     public class BasicComputer : BasicPlayer, IPlayer
     {
         public bool isWhite { get; set; }
-        private string openingFile {  get; set; }
-        public BasicComputer(bool isWhite, string openingFile)
+        private OpeningFileStructure openings {  get; set; }
+        public BasicComputer(bool isWhite, OpeningFileStructure openings)
         {
             this.isWhite = isWhite;
-            this.openingFile = openingFile;
+            this.openings = openings;
         }
 
         public Move makeTurn(Board b)
         {
-            ComputerBase c = new ComputerBase(openingFile);
+            ComputerBase c = new ComputerBase(openings);
             return c.getMove(b,isWhite);
         }
     }

@@ -1,4 +1,5 @@
 ﻿using ConsoleChess.AI.Model;
+using ConsoleChess.AI.Openings;
 using ConsoleChess.GameRunning;
 using ConsoleChess.Model.BoardHelpers;
 using ConsoleChess.Pieces;
@@ -16,15 +17,15 @@ namespace ConsoleChess.AI
 {
     public class ComputerBase
     {
-        public ComputerBase(string openingFile, int maxDepth = 2, int maxWidth=3)
+        public ComputerBase(OpeningFileStructure openings, int maxDepth = 2, int maxWidth=3)
         {
-            this.openingFile = openingFile;
+            this.openings = openings;
             this.maxDepth = maxDepth;
             this.maxWidth = maxWidth;
         }
         public int maxDepth { get; set; }
         public int maxWidth { get; set; }
-        public string openingFile {  get; set; }
+        public OpeningFileStructure openings {  get; set; }
 
         private readonly object moveLock = new object();//mutex object for multi threading
         private readonly Dictionary<Char, Int16> peiceValues = new Dictionary<Char, Int16>() { { 'P', 100 }, { 'B', 300 }, { 'N', 300 }, { 'R', 500 }, { 'Q', 900 }, { 'K', 10000 } };
@@ -34,7 +35,7 @@ namespace ConsoleChess.AI
             if (b.pastMoves.Count < 8)
             {
                 Console.WriteLine("Searching openings...");
-                var lines = File.ReadAllLines(openingFile);
+                var lines = File.ReadAllLines(this.openings.getFullOpenings(isWhite));
                 for (int i = 0; i < lines.Length; i++)
                 {
                     var line = lines[i];
