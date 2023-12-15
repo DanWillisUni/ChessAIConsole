@@ -154,21 +154,31 @@ namespace ConsoleChess.AI
             else
             {
                 List<MoveResult> prunedResults = prune(results);
-                List<MoveResult> toR = new List<MoveResult>();
-                foreach(MoveResult m in prunedResults)
+                if (prunedResults.Count == 1 && firstMove == null)
                 {
-                    toR.AddRange(getMovesSingleIteration(m.originalMove, m.boardAfterMove, isWhite, depthLeft - 1));
+                    return prunedResults;
                 }
-                return toR;
+                else
+                {
+                    List<MoveResult> toR = new List<MoveResult>();
+                    foreach (MoveResult m in prunedResults)
+                    {
+                        toR.AddRange(getMovesSingleIteration(m.originalMove, m.boardAfterMove, isWhite, depthLeft - 1));
+                    }
+                    return toR;
+                }
             }
 
         }
         private List<MoveResult> prune(List<MoveResult> all)
         {
             List<MoveResult> ordered = all.OrderByDescending(o => o.score).ToList();
+
             if(ordered.Count > this.maxWidth)
             {
-                int scoreToBeat = ordered[this.maxWidth].score;
+                int maxWidthScore = ordered[this.maxWidth].score;
+                int deivationScore = (int)(ordered[0].score - Math.Round(0.1 * Math.Abs(ordered[0].score)));
+                int scoreToBeat = Math.Max(maxWidthScore, deivationScore);
                 using (IEnumerator<MoveResult> resultsEnumerator = ordered.GetEnumerator())
                 {
                     List<MoveResult> toR = new List<MoveResult>();
