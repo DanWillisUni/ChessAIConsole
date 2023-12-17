@@ -55,12 +55,12 @@ namespace ConsoleChess.AI
         private MoveResult evaluateCounters(Move currentMove, Board b, bool isWhite, Move originalMove = null)
         {
             int lowestScore = int.MaxValue;
-            Board copy = b.DeepClone();
+            Board copy = b.DeepCopy();
             copy.makeMove(currentMove);
             List<Move> allCounters = copy.getAllMoves(!isWhite);
             foreach (Move counterMove in allCounters)
             {
-                Board endOfCounterBoard = b.DeepClone();
+                Board endOfCounterBoard = b.DeepCopy();
                 endOfCounterBoard.makeMove(counterMove);
                 int currentScore = getScore(endOfCounterBoard, isWhite);
                 if (currentScore < lowestScore)

@@ -12,6 +12,10 @@ namespace ConsoleChess.Pieces
     {
         public char moveType { get; set; }
 
+        public Pawn(string id, int numberOfMoves, Location location, char moveType) : this(id, numberOfMoves, location)
+        {
+            this.moveType = moveType;
+        }
         public Pawn(string id, int numberOfMoves, Location location) : base(id, numberOfMoves, location)
         {
             moveType = 'P';
@@ -37,6 +41,12 @@ namespace ConsoleChess.Pieces
             }
 
             
+        }
+
+        public IPieces DeepCopy()
+        {
+            Pawn deepcopy = new Pawn(this.id, this.numberOfMoves, this.location.DeepCopy(), moveType);
+            return deepcopy;
         }
     }
 }

@@ -10,13 +10,13 @@ namespace ConsoleChess.Model.BoardHelpers
         public char XLocation { get; set; }
         public char YLocation { get; set; }
 
-        public Location(char XLocation,char YLocation)
+        public Location(char XLocation, char YLocation)
         {
             this.XLocation = XLocation;
             this.YLocation = YLocation;
         }
 
-        public Location(int xCoord,int yCoord)
+        public Location(int xCoord, int yCoord)
         {
             XLocation = (char)(xCoord + 65);
             YLocation = (char)(yCoord + 49);
@@ -49,5 +49,11 @@ namespace ConsoleChess.Model.BoardHelpers
         }
 
         public override string ToString() { return XLocation.ToString() + YLocation.ToString(); }
+
+        public Location DeepCopy()
+        {
+            Location deepcopy = new Location(this.XLocation, this.YLocation);
+            return deepcopy;
+        }
     }
 }

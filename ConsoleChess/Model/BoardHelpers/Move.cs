@@ -11,10 +11,17 @@ namespace ConsoleChess.Model.BoardHelpers
         public Location fromLocation { get; set; }
         public Location toLocation { get; set; }
 
-        public Move (Location from,Location to)
+        public Move (Location from, Location to)
         {
             this.fromLocation = from;
             this.toLocation = to;
+        }
+
+        public Move(string s)
+        {
+            var split = s.Split(':');
+            fromLocation = new Location(split[0]);
+            toLocation = new Location(split[1]);
         }
 
         public bool isValid()
@@ -39,5 +46,9 @@ namespace ConsoleChess.Model.BoardHelpers
 
         public override string ToString() { return "From: " + fromLocation.ToString() + " To: " + toLocation.ToString(); }
 
+        internal Move DeepCopy()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

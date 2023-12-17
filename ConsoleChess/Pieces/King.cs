@@ -21,5 +21,11 @@ namespace ConsoleChess.Pieces
             return getPossibleMovesKing(this,b);
 
         }
+
+        public IPieces DeepCopy()
+        {
+            King deepcopy = new King(this.id, this.numberOfMoves, this.location.DeepCopy());
+            return deepcopy;
+        }
     }
 }

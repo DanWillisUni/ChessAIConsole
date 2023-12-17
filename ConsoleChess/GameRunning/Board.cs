@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace ConsoleChess.GameRunning
 {
@@ -14,6 +15,7 @@ namespace ConsoleChess.GameRunning
         public  List<Move> pastMoves { get; set; }
         public string[,] layout { get; set; }                
 
+        public Board() : this(false) { }
         public Board(bool clean=false)
         {
             allPeices = new List<IPieces>();
@@ -54,6 +56,13 @@ namespace ConsoleChess.GameRunning
             }
             updateLayout();
             pastMoves = new List<Move>();
+        }
+
+        public Board(List<IPieces> allPeices, List<Move> pastMoves, string[,] layout)
+        {
+            this.layout = layout;
+            this.allPeices = allPeices;
+            this.pastMoves = pastMoves;
         }
 
         private void updateLayout()
@@ -224,6 +233,7 @@ namespace ConsoleChess.GameRunning
 
         public string printAsString()
         {
+            updateLayout();
             string r = "";
             for (int y = 7; y != -1; y -= 1)
             {
@@ -250,6 +260,21 @@ namespace ConsoleChess.GameRunning
                 }
             }
             return r;
+        }
+
+        public Board DeepCopy()
+        {
+            Board deepcopy = new Board(true);
+            foreach(var piece in this.allPeices)
+            {
+                deepcopy.allPeices.Add(piece.DeepCopy());
+            }
+            foreach(var move in this.pastMoves)
+            {
+                deepcopy.pastMoves.Add(move.DeepCopy());
+            }
+            deepcopy.updateLayout();
+            return deepcopy;
         }
 
         // For Unit tests

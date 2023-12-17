@@ -17,5 +17,10 @@ namespace ConsoleChess.Pieces
         {
             return getPossibleMovesKnight(this, b);
         }
+        public IPieces DeepCopy()
+        {
+            Knight deepcopy = new Knight(this.id, this.numberOfMoves, this.location.DeepCopy());
+            return deepcopy;
+        }
     }
 }

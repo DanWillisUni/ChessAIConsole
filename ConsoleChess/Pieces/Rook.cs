@@ -17,5 +17,11 @@ namespace ConsoleChess.Pieces
         {
             return getPossibleMovesRook(this, b);
         }
+
+        public IPieces DeepCopy()
+        {
+            Bishop deepcopy = new Bishop(this.id, this.numberOfMoves, this.location.DeepCopy());
+            return deepcopy;
+        }
     }
 }
