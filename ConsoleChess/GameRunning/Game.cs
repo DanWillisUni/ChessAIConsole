@@ -23,7 +23,7 @@ namespace ConsoleChess.GameRunning
 
         public void Start()
         {
-            for(int i = 0; i < 10; i++)
+            while(true)
             {
                 Move m = null;
                 if (isWhitesTurn)

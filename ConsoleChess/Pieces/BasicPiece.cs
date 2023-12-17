@@ -1,11 +1,12 @@
 ﻿using ConsoleChess.GameRunning;
 using ConsoleChess.Model.BoardHelpers;
+using ConsoleChess.Pieces;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 
-namespace ConsoleChess.Pieces
+namespace ConsoleChesss
 {
     [Serializable]
     public class BasicPiece
@@ -22,7 +23,7 @@ namespace ConsoleChess.Pieces
             this.location = location;
         }
         #region peice movement
-        public static List<Move> getPossibleMovesPawn(Pawn pieceToMove,Board board)
+        public static List<Move> getPossibleMovesPawn(Pawn pieceToMove, Board board)
         {
             //Handle Promotions
             if (pieceToMove.moveType == 'Q')
@@ -45,18 +46,21 @@ namespace ConsoleChess.Pieces
             List<Move> moves = new List<Move>();
             int fromXCoord = pieceToMove.location.getXCoord();
             int fromYCoord = pieceToMove.location.getYCoord();
-            int forwardMultiplyer = (pieceToMove.isWhite ? 1:-1);            
+            int forwardMultiplyer = (pieceToMove.isWhite ? 1:-1);
 
-            if (String.IsNullOrEmpty(board.layout[fromXCoord, fromYCoord + forwardMultiplyer]))
+            if (isOnBoard(fromXCoord, fromYCoord + forwardMultiplyer))
             {
-                if (pieceToMove.numberOfMoves == 0)
+                if (String.IsNullOrEmpty(board.layout[fromXCoord, fromYCoord + forwardMultiplyer]) && pieceToMove.numberOfMoves == 0)
                 {
-                    if (String.IsNullOrEmpty(board.layout[fromXCoord,fromYCoord + (2*forwardMultiplyer)]))
+                    if (isOnBoard(fromXCoord, fromYCoord + (2 * forwardMultiplyer)))
                     {
-                        moves.Add(new Move(pieceToMove.location, new Location(fromXCoord, fromYCoord + (2 * forwardMultiplyer))));
+                        if (String.IsNullOrEmpty(board.layout[fromXCoord, fromYCoord + (2 * forwardMultiplyer)]))
+                        {
+                            moves.Add(new Move(pieceToMove.location, new Location(fromXCoord, fromYCoord + (2 * forwardMultiplyer))));
+                        }
                     }
+                    moves.Add(new Move(pieceToMove.location, new Location(fromXCoord, fromYCoord + forwardMultiplyer)));
                 }
-                moves.Add(new Move(pieceToMove.location, new Location(fromXCoord, fromYCoord + forwardMultiplyer)));
             }
 
             //taking
@@ -148,22 +152,26 @@ namespace ConsoleChess.Pieces
             int fromXCoord = pieceToMove.location.getXCoord();
             int fromYCoord = pieceToMove.location.getYCoord();
 
-            for(int x = -1;x > 1; x++)
+            for(int x = -1; x <= 1; x++)
             {
-                for (int y = -1; y > 1; y++)
+                for (int y = -1; y <= 1; y++)
                 {
                     if(!(x == 0 && y == 0))
                     {
-                        if (!(fromXCoord + x < 0 || fromXCoord + x > 7 || fromYCoord + y > 7 || fromYCoord + y < 0))
+                        if (isOnBoard(fromXCoord + x, fromYCoord + y))
                         {
                             string current = board.layout[fromXCoord + x,fromYCoord + y];
-                            if (current == "" || (pieceToMove.isWhite ? current[0] == 'B' : current[0] == 'W'))
+                            if (String.IsNullOrEmpty(current))
                             {
-                                if (!board.isInCheck(pieceToMove))
+                                moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + x, fromYCoord + y)));
+                            }
+                            else
+                            {
+                                if (pieceToMove.isWhite ? current[0] == 'B' : current[0] == 'W')
                                 {
                                     moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + x, fromYCoord + y)));
                                 }
-                            }                            
+                            }
                         }
                     }
                 }
@@ -174,7 +182,7 @@ namespace ConsoleChess.Pieces
             return moves;
             
         }
-        private static List<Move> getMovesInDirection(IPieces pieceToMove,int x,int y,Board board)
+        private static List<Move> getMovesInDirection(IPieces pieceToMove, int x, int y, Board board)
         {
             List<Move> moves = new List<Move>();
             int fromXCoord = pieceToMove.location.getXCoord();
@@ -184,7 +192,7 @@ namespace ConsoleChess.Pieces
             do
             {
                 count++;
-                if (fromXCoord + (x * count) < 0|| fromXCoord + (x * count)>7|| fromYCoord + (y * count)>7|| fromYCoord + (y * count)<0)
+                if (!isOnBoard(fromXCoord + (x * count), fromYCoord + (y * count)))
                 {
                     canContinue = false;
                 } 
@@ -209,5 +217,10 @@ namespace ConsoleChess.Pieces
             return moves;
         }
         #endregion
+
+        public static bool isOnBoard(int x, int y)
+        {
+            return (x <= 7 && x >= 0 && y <= 7 && y >= 0);
+        }
     }
 }

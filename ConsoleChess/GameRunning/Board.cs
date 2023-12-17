@@ -14,41 +14,44 @@ namespace ConsoleChess.GameRunning
         public  List<Move> pastMoves { get; set; }
         public string[,] layout { get; set; }                
 
-        public Board()
+        public Board(bool clean=false)
         {
             allPeices = new List<IPieces>();
-            allPeices.Add(new Rook("BR2", 0, new Location('A', '8')));
-            allPeices.Add(new Pawn("BP8", 0, new Location('A', '7')));
-            allPeices.Add(new Pawn("WP1", 0, new Location('A', '2')));
-            allPeices.Add(new Rook("WR1", 0, new Location('A', '1')));
-            allPeices.Add(new Knight("BN2", 0, new Location('B', '8')));
-            allPeices.Add(new Pawn("BP7", 0, new Location('B', '7')));
-            allPeices.Add(new Pawn("WP2", 0, new Location('B', '2')));
-            allPeices.Add(new Knight("WN1", 0, new Location('B', '1')));
-            allPeices.Add(new Bishop("BB2", 0, new Location('C', '8')));
-            allPeices.Add(new Pawn("BP6", 0, new Location('C', '7')));
-            allPeices.Add(new Pawn("WP3", 0, new Location('C', '2')));
-            allPeices.Add(new Bishop("WB1", 0, new Location('C', '1')));
-            allPeices.Add(new Queen("BQ", 0, new Location('D', '8')));
-            allPeices.Add(new Pawn("BP5", 0, new Location('D', '7')));
-            allPeices.Add(new Pawn("WP4", 0, new Location('D', '2')));
-            allPeices.Add(new Queen("WQ", 0, new Location('D', '1')));
-            allPeices.Add(new King("BK", 0, new Location('E', '8')));
-            allPeices.Add(new Pawn("BP4", 0, new Location('E', '7')));
-            allPeices.Add(new Pawn("WP5", 0, new Location('E', '2')));
-            allPeices.Add(new King("WK", 0, new Location('E', '1')));
-            allPeices.Add(new Bishop("BB1", 0, new Location('F', '8')));
-            allPeices.Add(new Pawn("BP3", 0, new Location('F', '7')));
-            allPeices.Add(new Pawn("WP6", 0, new Location('F', '2')));
-            allPeices.Add(new Bishop("WB2", 0, new Location('F', '1')));
-            allPeices.Add(new Knight("BN1", 0, new Location('G', '8')));
-            allPeices.Add(new Pawn("BP2", 0, new Location('G', '7')));
-            allPeices.Add(new Pawn("WP7", 0, new Location('G', '2')));
-            allPeices.Add(new Knight("WN2", 0, new Location('G', '1')));
-            allPeices.Add(new Rook("BR1", 0, new Location('H', '8')));
-            allPeices.Add(new Pawn("BP1", 0, new Location('H', '7')));
-            allPeices.Add(new Pawn("WP8", 0, new Location('H', '2')));
-            allPeices.Add(new Rook("WR2", 0, new Location('H', '1')));
+            if (!clean)
+            {
+                allPeices.Add(new Rook("BR2", 0, new Location('A', '8')));
+                allPeices.Add(new Pawn("BP8", 0, new Location('A', '7')));
+                allPeices.Add(new Pawn("WP1", 0, new Location('A', '2')));
+                allPeices.Add(new Rook("WR1", 0, new Location('A', '1')));
+                allPeices.Add(new Knight("BN2", 0, new Location('B', '8')));
+                allPeices.Add(new Pawn("BP7", 0, new Location('B', '7')));
+                allPeices.Add(new Pawn("WP2", 0, new Location('B', '2')));
+                allPeices.Add(new Knight("WN1", 0, new Location('B', '1')));
+                allPeices.Add(new Bishop("BB2", 0, new Location('C', '8')));
+                allPeices.Add(new Pawn("BP6", 0, new Location('C', '7')));
+                allPeices.Add(new Pawn("WP3", 0, new Location('C', '2')));
+                allPeices.Add(new Bishop("WB1", 0, new Location('C', '1')));
+                allPeices.Add(new Queen("BQ", 0, new Location('D', '8')));
+                allPeices.Add(new Pawn("BP5", 0, new Location('D', '7')));
+                allPeices.Add(new Pawn("WP4", 0, new Location('D', '2')));
+                allPeices.Add(new Queen("WQ", 0, new Location('D', '1')));
+                allPeices.Add(new King("BK", 0, new Location('E', '8')));
+                allPeices.Add(new Pawn("BP4", 0, new Location('E', '7')));
+                allPeices.Add(new Pawn("WP5", 0, new Location('E', '2')));
+                allPeices.Add(new King("WK", 0, new Location('E', '1')));
+                allPeices.Add(new Bishop("BB1", 0, new Location('F', '8')));
+                allPeices.Add(new Pawn("BP3", 0, new Location('F', '7')));
+                allPeices.Add(new Pawn("WP6", 0, new Location('F', '2')));
+                allPeices.Add(new Bishop("WB2", 0, new Location('F', '1')));
+                allPeices.Add(new Knight("BN1", 0, new Location('G', '8')));
+                allPeices.Add(new Pawn("BP2", 0, new Location('G', '7')));
+                allPeices.Add(new Pawn("WP7", 0, new Location('G', '2')));
+                allPeices.Add(new Knight("WN2", 0, new Location('G', '1')));
+                allPeices.Add(new Rook("BR1", 0, new Location('H', '8')));
+                allPeices.Add(new Pawn("BP1", 0, new Location('H', '7')));
+                allPeices.Add(new Pawn("WP8", 0, new Location('H', '2')));
+                allPeices.Add(new Rook("WR2", 0, new Location('H', '1')));
+            }
             updateLayout();
             pastMoves = new List<Move>();
         }
@@ -247,6 +250,38 @@ namespace ConsoleChess.GameRunning
                 }
             }
             return r;
+        }
+
+        // For Unit tests
+        public void addPeice(string id, Location location)
+        {
+            bool isWhite = id.ToUpper()[0] == 'W' ? true : false;
+            IPieces newOne = null;
+            switch (id.ToUpper()[1])
+            {
+                case 'P':
+                    newOne = new Pawn(id.ToUpper(), 0, location);
+                    break;
+                case 'R':
+                    newOne = new Rook(id.ToUpper(), 0, location);
+                    break;
+                case 'N':
+                    newOne = new Knight(id.ToUpper(), 0, location);
+                    break;
+                case 'B':
+                    newOne = new Bishop(id.ToUpper(), 0, location);
+                    break;
+                case 'Q':
+                    newOne = new Queen(id.ToUpper(), 0, location);
+                    break;
+                case 'K':
+                    newOne = new King(id.ToUpper(), 0, location);
+                    break;
+                default:
+                    break;
+            }
+            allPeices.Add(newOne);
+            updateLayout();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using ConsoleChess.GameRunning;
 using ConsoleChess.Model.BoardHelpers;
+using ConsoleChesss;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,7 +8,7 @@ using System.Text;
 namespace ConsoleChess.Pieces
 {
     [Serializable]
-    public class Pawn : BasicPiece , IPieces
+    public class Pawn : BasicPiece, IPieces
     {
         public char moveType { get; set; }
 
