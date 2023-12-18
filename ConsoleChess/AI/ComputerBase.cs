@@ -154,6 +154,21 @@ namespace ConsoleChess.AI
             else
             {
                 List<MoveResult> prunedResults = prune(results);
+                //for testing
+                if (firstMove == null)
+                {
+                    Console.WriteLine("All results:");
+                    foreach(MoveResult result in results) 
+                    { 
+                        Console.WriteLine(result.ToString());
+                    }
+                    Console.WriteLine("Pruned results:");
+                    foreach (MoveResult result in prunedResults)
+                    {
+                        Console.WriteLine(result.ToString());
+                    }
+                }
+
                 if (prunedResults.Count == 1 && firstMove == null)
                 {
                     return prunedResults;

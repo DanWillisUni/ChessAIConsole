@@ -46,9 +46,10 @@ namespace ConsoleChess.Model.BoardHelpers
 
         public override string ToString() { return "From: " + fromLocation.ToString() + " To: " + toLocation.ToString(); }
 
-        internal Move DeepCopy()
+        public Move DeepCopy()
         {
-            throw new NotImplementedException();
+            Move deepCopy = new Move(this.fromLocation.DeepCopy(), this.toLocation.DeepCopy());
+            return deepCopy;
         }
     }
 }
