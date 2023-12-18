@@ -32,7 +32,7 @@ namespace ConsoleChess.AI
         public Move getMove(Board b,bool isWhite)
         {
             b.print(!isWhite);
-            if (b.pastMoves.Count < 8)
+            if (b.pastMoves.Count <= 6)
             {
                 Console.WriteLine("Searching openings...");
                 var lines = File.ReadAllLines(this.openings.getFullOpenings(isWhite));
@@ -52,9 +52,10 @@ namespace ConsoleChess.AI
             return calculateMove(b, isWhite);
         }  
         
-        private MoveResult evaluateCounters(Move currentMove, Board b, bool isWhite, Move originalMove = null)
+        private MoveResult getBestCounter(Move currentMove, Board b, bool isWhite)
         {
             int lowestScore = int.MaxValue;
+            Move lowestCounter = null;
             Board copy = b.DeepCopy();
             copy.makeMove(currentMove);
             List<Move> allCounters = copy.getAllMoves(!isWhite);
@@ -66,9 +67,11 @@ namespace ConsoleChess.AI
                 if (currentScore < lowestScore)
                 {
                     lowestScore = currentScore;
+                    lowestCounter = counterMove;
                 }
             }
-            return new MoveResult(originalMove, currentMove, lowestScore, copy);
+            copy.makeMove(lowestCounter);
+            return new MoveResult(currentMove, lowestScore, copy);
         }
         private int getScore(Board b, bool isWhite)
         {
@@ -92,52 +95,12 @@ namespace ConsoleChess.AI
         private Move calculateMove(Board b, bool isWhite)
         {
             Console.WriteLine("Calculating...");
-            List<MoveResult> results = getMovesSingleIteration(null, b, isWhite, this.maxDepth);
 
-            Dictionary<Move,int> lowestScoresPerOriginalMove = new Dictionary<Move,int>();
-            foreach(MoveResult moveResult in results)
-            {
-                if (lowestScoresPerOriginalMove.ContainsKey(moveResult.originalMove)) 
-                {
-                    if (lowestScoresPerOriginalMove[moveResult.originalMove] > moveResult.score)
-                    {
-                        lowestScoresPerOriginalMove[moveResult.originalMove] = moveResult.score;
-                    }
-                }
-                else
-                {
-                    lowestScoresPerOriginalMove.Add(moveResult.originalMove, moveResult.score);
-                }
-            }
-
-            List<Move> r = new List<Move>();
-            int currentHighest = int.MinValue; 
-            foreach (KeyValuePair<Move, int> entry in lowestScoresPerOriginalMove)
-            {
-                // Console.WriteLine(entry.Key.ToString() + " - " + entry.Value);
-                if (entry.Value >= currentHighest)
-                {
-                    if (entry.Value > currentHighest)
-                    {
-                        currentHighest = entry.Value;
-                        r = new List<Move>();
-                    }
-                    r.Add(entry.Key);
-                }
-            }
-            //Console.WriteLine("Highest Score");
-            Random random = new Random();
-            return r[random.Next(r.Count)];
-        }
-
-        private List<MoveResult> getMovesSingleIteration(Move firstMove, Board b, bool isWhite, int depthLeft)
-        {
             List<Move> all = b.getAllMoves(isWhite);
-
             List<MoveResult> results = new List<MoveResult>();
             Parallel.For<List<MoveResult>>(0, all.Count, () => new List<MoveResult>(), (i, loop, threadResults) => //multithreaded for loop
             {
-                threadResults.Add(evaluateCounters(all[(int)i], b, isWhite, firstMove));
+                threadResults.Add(getMoveFirstIteration(all[(int)i], b, isWhite));
                 return threadResults;//return the thread results
             },
             (threadResults) => {
@@ -147,6 +110,21 @@ namespace ConsoleChess.AI
                 }
             });
 
+            List<MoveResult> r = prune(results, true);
+ 
+            Random random = new Random();
+            return r[random.Next(r.Count)].originalMove;
+        }/*
+
+        private List<MoveResult> getMovesSingleIteration(Move firstMove, Board b, bool isWhite, int depthLeft)
+        {
+            
+
+
+
+
+
+
             if (depthLeft == 0)
             {
                 return results;
@@ -154,22 +132,8 @@ namespace ConsoleChess.AI
             else
             {
                 List<MoveResult> prunedResults = prune(results);
-                //for testing
-                if (firstMove == null)
-                {
-                    Console.WriteLine("All results:");
-                    foreach(MoveResult result in results) 
-                    { 
-                        Console.WriteLine(result.ToString());
-                    }
-                    Console.WriteLine("Pruned results:");
-                    foreach (MoveResult result in prunedResults)
-                    {
-                        Console.WriteLine(result.ToString());
-                    }
-                }
 
-                if (prunedResults.Count == 1 && firstMove == null)
+                if (prunedResults.Count == 1)
                 {
                     return prunedResults;
                 }
@@ -178,22 +142,38 @@ namespace ConsoleChess.AI
                     List<MoveResult> toR = new List<MoveResult>();
                     foreach (MoveResult m in prunedResults)
                     {
-                        toR.AddRange(getMovesSingleIteration(m.originalMove, m.boardAfterMove, isWhite, depthLeft - 1));
+                        toR.AddRange(getMovesSingleIteration(firstMove, m.boardAfterMove, isWhite, depthLeft - 1));
                     }
                     return toR;
                 }
             }
 
+        }*/
+
+        private MoveResult getMoveFirstIteration(Move firstMove, Board b, bool isWhite)
+        {
+            MoveResult bestFirstCounter = getBestCounter(firstMove, b, isWhite);
+            /*List<Move> secondMoves = bestFirstCounter.boardAfterMove.getAllMoves(isWhite);
+            foreach (Move move in secondMoves)
+            {
+                MoveResult mr = getBestCounter(move, bestFirstCounter.boardAfterMove, isWhite);
+            }*/
+
+            return bestFirstCounter;
         }
-        private List<MoveResult> prune(List<MoveResult> all)
+        private List<MoveResult> prune(List<MoveResult> all, bool getHighest = false)
         {
             List<MoveResult> ordered = all.OrderByDescending(o => o.score).ToList();
 
             if(ordered.Count > this.maxWidth)
             {
                 int maxWidthScore = ordered[this.maxWidth].score;
-                int deivationScore = (int)(ordered[0].score - Math.Round(0.1 * Math.Abs(ordered[0].score)));
-                int scoreToBeat = Math.Max(maxWidthScore, deivationScore);
+                int scoreToBeat = ordered[0].score;
+                if (!getHighest)
+                {
+                    int deivationScore = (int)(ordered[0].score - Math.Round(0.1 * Math.Abs(ordered[0].score)));
+                    scoreToBeat = Math.Max(maxWidthScore, deivationScore);
+                }
                 using (IEnumerator<MoveResult> resultsEnumerator = ordered.GetEnumerator())
                 {
                     List<MoveResult> toR = new List<MoveResult>();
@@ -209,7 +189,7 @@ namespace ConsoleChess.AI
                             break;
                         }
                     }
-                    return toR;
+                    return toR.Take(this.maxWidth).ToList();
                 }
             }
             else
