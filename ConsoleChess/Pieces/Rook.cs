@@ -20,7 +20,7 @@ namespace ConsoleChess.Pieces
 
         public IPieces DeepCopy()
         {
-            Bishop deepcopy = new Bishop(this.id, this.numberOfMoves, this.location.DeepCopy());
+            Rook deepcopy = new Rook(this.id, this.numberOfMoves, this.location.DeepCopy());
             return deepcopy;
         }
     }

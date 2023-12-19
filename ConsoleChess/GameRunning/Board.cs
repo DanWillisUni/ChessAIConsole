@@ -70,7 +70,7 @@ namespace ConsoleChess.GameRunning
             layout = new string[8,8];
             foreach(IPieces p in allPeices)
             {
-                layout[p.location.getXCoord(),p.location.getYCoord()] = p.id;
+                layout[p.location.getXCoord(), p.location.getYCoord()] = p.id;
             }
         }
         public void makeMove(Move move)

@@ -52,7 +52,7 @@ namespace ConsoleChesss
             {
                 if (String.IsNullOrEmpty(board.layout[fromXCoord, fromYCoord + forwardMultiplyer]) && pieceToMove.numberOfMoves == 0)
                 {
-                    if (isOnBoard(fromXCoord, fromYCoord + (2 * forwardMultiplyer)))
+                    if (isOnBoard(fromXCoord, fromYCoord + (2 * forwardMultiplyer)) && pieceToMove.numberOfMoves == 0)
                     {
                         if (String.IsNullOrEmpty(board.layout[fromXCoord, fromYCoord + (2 * forwardMultiplyer)]))
                         {
@@ -64,16 +64,16 @@ namespace ConsoleChesss
             }
 
             //taking
-            for (int i = -1; i < 2; i += 2)
+            for (int x = -1; x < 2; x += 2)
             {
-                if (fromXCoord + i >= 0 && fromXCoord + i <= 7)
+                if (isOnBoard(fromXCoord + x, fromYCoord + forwardMultiplyer))
                 {
-                    if (!String.IsNullOrEmpty(board.layout[fromXCoord + i, fromYCoord + forwardMultiplyer]))
+                    if (!String.IsNullOrEmpty(board.layout[fromXCoord + x, fromYCoord + forwardMultiplyer]))
                     {
-                        char takeColour = (board.layout[fromXCoord + i, fromYCoord + forwardMultiplyer])[0];
+                        char takeColour = (board.layout[fromXCoord + x, fromYCoord + forwardMultiplyer])[0];
                         if (pieceToMove.isWhite ? takeColour == 'B' : takeColour == 'W')
                         {
-                            moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + i, fromYCoord + forwardMultiplyer)));
+                            moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + x, fromYCoord + forwardMultiplyer)));
                         }
                     }
                 }

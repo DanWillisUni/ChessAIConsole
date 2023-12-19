@@ -44,7 +44,9 @@ namespace ConsoleChess.Model.BoardHelpers
         }
         #endregion
 
-        public override string ToString() { return "From: " + fromLocation.ToString() + " To: " + toLocation.ToString(); }
+        public override string ToString() { return fromLocation.ToString() + ":" + toLocation.ToString(); }
+
+        public string ToStringPretty() { return "From: " + fromLocation.ToString() + " To: " + toLocation.ToString(); }
 
         public Move DeepCopy()
         {
