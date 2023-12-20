@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ConsoleChess.Model.BoardHelpers
 {
@@ -21,7 +22,7 @@ namespace ConsoleChess.Model.BoardHelpers
             XLocation = (char)(xCoord + 65);
             YLocation = (char)(yCoord + 49);
         }
-        public Location(string s) : this(s[0], s[1]) { }  
+        public Location(string s) : this(s[0], s[1]) { }
         
         public Location() : this(0,0) { }
 
@@ -54,6 +55,16 @@ namespace ConsoleChess.Model.BoardHelpers
         {
             Location deepcopy = new Location(this.XLocation, this.YLocation);
             return deepcopy;
+        }
+
+        public static bool isLocation(string s)
+        {
+            if (!string.IsNullOrEmpty(s))
+            {
+                Match m = Regex.Match(s, "[A-H][1-8]", RegexOptions.IgnoreCase);
+                return m.Success;
+            }
+            return false;
         }
     }
 }

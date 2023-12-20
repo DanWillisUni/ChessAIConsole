@@ -18,7 +18,7 @@ namespace ConsoleChess.AI
 {
     public class ComputerBase
     {
-        public ComputerBase(OpeningFileStructure openings, int maxDepth = 5, int maxWidth=5)
+        public ComputerBase(OpeningFileStructure openings, int maxDepth = 4, int maxWidth=5)
         {
             this.openings = openings;
             this.maxDepth = maxDepth;
@@ -139,6 +139,10 @@ namespace ConsoleChess.AI
             Console.WriteLine("Calculating...");
 
             List<Move> all = b.getAllMoves(isWhite);
+            if (all.Count == 1)
+            {
+                return all[0];
+            }
             List<MoveResult> results = new List<MoveResult>();
             Parallel.For<List<MoveResult>>(0, all.Count, () => new List<MoveResult>(), (i, loop, threadResults) => //multithreaded for loop
             {
@@ -225,28 +229,41 @@ namespace ConsoleChess.AI
                 }
                 using (IEnumerator<MoveResult> resultsEnumerator = ordered.GetEnumerator())
                 {
-                    List<MoveResult> toR = new List<MoveResult>();
+                    List<MoveResult> toRGT = new List<MoveResult>();
+                    List<MoveResult> toREQ = new List<MoveResult>();
                     while (resultsEnumerator.MoveNext())
                     {
                         MoveResult result = resultsEnumerator.Current;
-                        if (result.score >= scoreToBeat)
+                        if (result.score > scoreToBeat)
                         {
-                            toR.Add(result);
+                            toRGT.Add(result);
+                        }
+                        else if (result.score == scoreToBeat)
+                        {
+                            toREQ.Add(result);
                         }
                         else
                         {
                             break;
                         }
                     }
-                    if (toR.Count > this.maxWidth)
+                    if (toRGT.Count > this.maxWidth)
                     {
-                        return toR.Take(this.maxWidth).ToList();
+                        return toRGT.Take(this.maxWidth).ToList();
+                    }
+                    else if (toRGT.Count + toREQ.Count > this.maxWidth)
+                    {
+                        List<MoveResult> toR = toRGT;
+                        Random random = new Random();
+                        toR.AddRange(toREQ.OrderBy(x => random.Next()).Take(toR.Count - this.maxWidth).ToList());
+                        return toR;
                     }
                     else
                     {
+                        List<MoveResult> toR = toRGT;
+                        toR.AddRange(toREQ);
                         return toR;
-                    }
-                    
+                    }                    
                 }
             }
             else
