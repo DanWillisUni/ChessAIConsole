@@ -291,6 +291,11 @@ namespace ConsoleChess.GameRunning
             return deepcopy;
         }
 
+        public static bool isOnBoard(int x, int y)
+        {
+            return (x <= 7 && x >= 0 && y <= 7 && y >= 0);
+        }
+
         // For Unit tests
         public void addPeice(string id, Location location)
         {

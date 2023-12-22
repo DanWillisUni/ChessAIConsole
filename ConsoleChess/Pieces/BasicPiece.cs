@@ -48,11 +48,11 @@ namespace ConsoleChesss
             int fromYCoord = pieceToMove.location.getYCoord();
             int forwardMultiplyer = (pieceToMove.isWhite ? 1:-1);
 
-            if (isOnBoard(fromXCoord, fromYCoord + forwardMultiplyer))
+            if (Board.isOnBoard(fromXCoord, fromYCoord + forwardMultiplyer))
             {
                 if (String.IsNullOrEmpty(board.layout[fromXCoord, fromYCoord + forwardMultiplyer]) && pieceToMove.numberOfMoves == 0)
                 {
-                    if (isOnBoard(fromXCoord, fromYCoord + (2 * forwardMultiplyer)) && pieceToMove.numberOfMoves == 0)
+                    if (Board.isOnBoard(fromXCoord, fromYCoord + (2 * forwardMultiplyer)) && pieceToMove.numberOfMoves == 0)
                     {
                         if (String.IsNullOrEmpty(board.layout[fromXCoord, fromYCoord + (2 * forwardMultiplyer)]))
                         {
@@ -66,7 +66,7 @@ namespace ConsoleChesss
             //taking
             for (int x = -1; x < 2; x += 2)
             {
-                if (isOnBoard(fromXCoord + x, fromYCoord + forwardMultiplyer))
+                if (Board.isOnBoard(fromXCoord + x, fromYCoord + forwardMultiplyer))
                 {
                     if (!String.IsNullOrEmpty(board.layout[fromXCoord + x, fromYCoord + forwardMultiplyer]))
                     {
@@ -158,7 +158,7 @@ namespace ConsoleChesss
                 {
                     if(!(x == 0 && y == 0))
                     {
-                        if (isOnBoard(fromXCoord + x, fromYCoord + y))
+                        if (Board.isOnBoard(fromXCoord + x, fromYCoord + y))
                         {
                             string current = board.layout[fromXCoord + x,fromYCoord + y];
                             if (String.IsNullOrEmpty(current))
@@ -192,7 +192,7 @@ namespace ConsoleChesss
             do
             {
                 count++;
-                if (!isOnBoard(fromXCoord + (x * count), fromYCoord + (y * count)))
+                if (!Board.isOnBoard(fromXCoord + (x * count), fromYCoord + (y * count)))
                 {
                     canContinue = false;
                 } 
@@ -218,9 +218,5 @@ namespace ConsoleChesss
         }
         #endregion
 
-        public static bool isOnBoard(int x, int y)
-        {
-            return (x <= 7 && x >= 0 && y <= 7 && y >= 0);
-        }
     }
 }

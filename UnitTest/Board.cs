@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using ConsoleChess.GameRunning;
 using ConsoleChess.Model.BoardHelpers;
+using ConsoleChesss;
 
 namespace UnitTest
 {
@@ -27,5 +28,56 @@ namespace UnitTest
             Assert.AreEqual("rnbqkbnrpppppppp                    P           PPPP PPPRNBQKBNR", b.printAsString());
             Assert.AreEqual("rnbqkbnrpppppppp                                PPPPPPPPRNBQKBNR", a.printAsString());
         }
+
+        #region onBoard
+        [TestMethod]
+        public void isOnBoardSuccess()
+        {
+            for (int x = 0; x < 7; x++)
+            {
+                for (int y = 0; y < 7; y++)
+                {
+                    bool result = Board.isOnBoard(x, y);
+                    Assert.AreEqual(result, true);
+                }
+            }
+
+        }
+
+        [TestMethod]
+        public void isOnBoardFail()
+        {
+            for (int x = -3; x < -1; x++)
+            {
+                for (int y = -3; y < -1; y++)
+                {
+                    bool result = Board.isOnBoard(x, y);
+                    Assert.AreEqual(result, false);
+                }
+
+                for (int y = 8; y < 10; y++)
+                {
+                    bool result = Board.isOnBoard(x, y);
+                    Assert.AreEqual(result, false);
+                }
+            }
+
+            for (int x = 8; x < 10; x++)
+            {
+                for (int y = -3; y < -1; y++)
+                {
+                    bool result = Board.isOnBoard(x, y);
+                    Assert.AreEqual(result, false);
+                }
+
+                for (int y = 8; y < 10; y++)
+                {
+                    bool result = Board.isOnBoard(x, y);
+                    Assert.AreEqual(result, false);
+                }
+            }
+
+        }
+        #endregion
     }
 }

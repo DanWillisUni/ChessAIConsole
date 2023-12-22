@@ -3,6 +3,7 @@ using ConsoleChess.AI.Openings;
 using ConsoleChess.GameRunning;
 using ConsoleChess.Model.BoardHelpers;
 using ConsoleChess.Pieces;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,14 +19,16 @@ namespace ConsoleChess.AI
 {
     public class ComputerBase
     {
-        public ComputerBase(OpeningFileStructure openings, int maxDepth = 4, int maxWidth=5)
+        public ComputerBase(OpeningFileStructure openings, int maxDepth = 3, int maxWidth=5, int maxDepthOfCounter=1)
         {
             this.openings = openings;
             this.maxDepth = maxDepth;
             this.maxWidth = maxWidth;
+            this.maxDepthOfCounter = maxDepthOfCounter;
         }
         public int maxDepth { get; set; }
         public int maxWidth { get; set; }
+        public int maxDepthOfCounter {  get; set; }
         public OpeningFileStructure openings {  get; set; }
 
         private readonly object moveLock = new object();//mutex object for multi threading
@@ -53,76 +56,107 @@ namespace ConsoleChess.AI
             return calculateMove(b, isWhite);
         }  
         
-        private MoveResult getBestCounter(Move currentMove, Board b, bool isWhite)
+        private MoveResult getBestCounter(Move currentMove, Board b, bool isWhite, int depthLeft, bool printDebug = false)
         {
             double lowestScore = int.MaxValue;
             Board lowestCounterBoard = null;
             Board copy = b.DeepCopy();
             copy.makeMove(currentMove);
             List<Move> allCounters = copy.getAllMoves(!isWhite);
+            if (printDebug) { Console.WriteLine("All counters:"); }
+            List<MoveResult> bestCounters = new List<MoveResult>();
             foreach (Move counterMove in allCounters)
             {
+                if (printDebug) { Console.WriteLine(counterMove.ToString()); }
                 Board endOfCounterBoard = copy.DeepCopy();
-                endOfCounterBoard.makeMove(counterMove);
-                double currentScore = getScore(endOfCounterBoard, isWhite);
-                if (currentScore < lowestScore)
+                if (depthLeft > 0)
                 {
-                    lowestScore = currentScore;
-                    lowestCounterBoard = endOfCounterBoard;
+                    MoveResult moveResultDepthTwo = getBestCounter(counterMove, endOfCounterBoard, !isWhite, depthLeft - 1);
+                    bestCounters.Add(new MoveResult(currentMove, moveResultDepthTwo.score, moveResultDepthTwo.boardAfterMove));
+                }
+                else
+                {
+                    endOfCounterBoard.makeMove(counterMove);
+                    if (printDebug) { Console.WriteLine("Board: " + endOfCounterBoard.printAsString()); }
+                    double currentScore = getScore(endOfCounterBoard, isWhite);
+                    if (currentScore < lowestScore)
+                    {
+                        lowestScore = currentScore;
+                        lowestCounterBoard = endOfCounterBoard;
+                    }
                 }
             }
+            if (bestCounters.Count > 0) { return prune(bestCounters, true)[0]; }
             return new MoveResult(currentMove, lowestScore, lowestCounterBoard);
         }
+        #region scoring
         private double getScore(Board b, bool isWhite)
         {
             double r = 0;
+            int forwardMultiplyer = isWhite ? 1 : -1;
+            char isWhiteChar = isWhite ? 'W' : 'B';
 
             foreach(IPieces p in b.allPeices)
             {
-                char type = p.id[1] == 'P' ? ((Pawn)p).moveType : p.id[1];
-                int value = peiceValues[type];
+                int value = getPeiceValue(p);
                 r = (p.isWhite == isWhite) ? r + value : r - value;
             }
 
             // number of possible moves
-            List<Move> ours = b.getAllMoves(isWhite);
-            List<Move> opp = b.getAllMoves(!isWhite);
-            int moveNumberDiff = ours.Count - opp.Count;
+            List<Move> ourMoves = b.getAllMoves(isWhite);
+            List<Move> oppMoves = b.getAllMoves(!isWhite);
+            int moveNumberDiff = ourMoves.Count - oppMoves.Count;
             r += moveNumberDiff * 0.1;
 
-            //doubled pawn
-            for(int x = 0; x <= 7; x++)
+            r += 0.1 * getValueOfThreatening(b, ourMoves);
+            r -= 0.1 * getValueOfThreatening(b, oppMoves);
+
+            for (int x = 0; x <= 7; x++)
             {
-                int whitePawns = 0;
-                int blackPawns = 0;
+                int ourPawnsPerColumn = 0;
+                int opponentsPawnsPerColumn = 0;
                 for(int y = 0; y <= 7; y++)
                 {
                     if (b.layout[x, y] != null)
                     {
                         if (b.layout[x, y].ToUpper()[1] == 'P')
                         {
-                            if (b.layout[x, y].ToUpper()[0] == 'W')
+                            //doubled pawn
+                            if (b.layout[x, y].ToUpper()[0] == isWhiteChar)
                             {
-                                whitePawns++;
+                                ourPawnsPerColumn++;
+                                if (Board.isOnBoard(x, y + forwardMultiplyer))
+                                {
+                                    if (b.layout[x, y + forwardMultiplyer] != null)
+                                    {
+                                        r += 0.5;
+                                    }
+                                }
                             }
                             else
                             {
-                                blackPawns++;
+                                opponentsPawnsPerColumn++;
+                                if (Board.isOnBoard(x, y - forwardMultiplyer))
+                                {
+                                    if (b.layout[x, y - forwardMultiplyer] != null)
+                                    {
+                                        r -= 0.5;
+                                    }
+                                }
                             }
+
                         }
                     }
                 }
-                if (whitePawns > 1)
+                if (ourPawnsPerColumn > 1)
                 {
-                    r += 0.5 * (isWhite ? -1 : 1);
+                    r += 0.5;
                 }
-                if (blackPawns > 1)
+                if (opponentsPawnsPerColumn > 1)
                 {
-                    r += 0.5 * (isWhite ? 1 : -1);
+                    r -= 0.5;
                 }
             }
-
-
             
             // protected pieces value
             // threatened peices
@@ -131,9 +165,29 @@ namespace ConsoleChess.AI
 
             //-0.5(D - D' + S-S' + I - I')
             //D, S, I = doubled, blocked and isolated pawns
+            return Math.Round(r, 3, MidpointRounding.AwayFromZero);
+        }
+        private int getPeiceValue(IPieces p)
+        {
+            char type = p.id[1] == 'P' ? ((Pawn)p).moveType : p.id[1];
+            return peiceValues[type];
+        }
+
+        private double getValueOfThreatening(Board b, List<Move> moves)
+        {
+            double r = 0;
+            foreach (Move move in moves)
+            {
+                IPieces taken = b.allPeices.Where(o => o.location.Equals(move.toLocation)).Select(o => o).FirstOrDefault();
+                if (taken != null)
+                {
+                    r += getPeiceValue(taken);
+                }
+            }
             return r;
         }
 
+        #endregion
         private Move calculateMove(Board b, bool isWhite)
         {
             Console.WriteLine("Calculating...");
@@ -175,7 +229,7 @@ namespace ConsoleChess.AI
 
         private MoveResult getMoveFirstIteration(Move firstMove, Board b, bool isWhite)
         {
-            MoveResult bestFirstCounter = getBestCounter(firstMove, b, isWhite);
+            MoveResult bestFirstCounter = getBestCounter(firstMove, b, isWhite, maxDepthOfCounter);
 
             if (maxDepth == 0)
             {
@@ -192,12 +246,13 @@ namespace ConsoleChess.AI
             List<MoveResult> bestCounters = new List<MoveResult>();
             foreach (Move move in allMoves)
             {
-                bestCounters.Add(getBestCounter(move, b.DeepCopy(), isWhite));
+                bestCounters.Add(getBestCounter(move, b.DeepCopy(), isWhite, maxDepthOfCounter));
             }
 
             if (depthLeft == 0)
             {
-                return prune(bestCounters, true)[0];
+                List<MoveResult> pruned = prune(bestCounters, true);
+                return pruned[0];
             }
             else
             {
@@ -208,7 +263,7 @@ namespace ConsoleChess.AI
                 List<MoveResult> moveResultsSecond = new List<MoveResult>();
                 foreach (MoveResult move in prunedResults)
                 {
-                    moveResultsSecond.Add(getMoveIteration(move.boardAfterMove, isWhite, depthLeft -1));
+                    moveResultsSecond.Add(getMoveIteration(move.boardAfterMove, isWhite, depthLeft - 1));
                 }
 
                 return prune(moveResultsSecond, true)[0];
@@ -216,10 +271,9 @@ namespace ConsoleChess.AI
         }
         private List<MoveResult> prune(List<MoveResult> all, bool getHighest = false)
         {
-            List<MoveResult> ordered = all.OrderByDescending(o => o.score).ToList();
-
-            if(ordered.Count > this.maxWidth)
+            if(all.Count > this.maxWidth)
             {
+                List<MoveResult> ordered = all.OrderByDescending(o => o.score).ToList();
                 double scoreToBeat = ordered[0].score;
                 if (!getHighest)
                 {
@@ -242,33 +296,34 @@ namespace ConsoleChess.AI
                         {
                             toREQ.Add(result);
                         }
-                        else
-                        {
-                            break;
-                        }
                     }
-                    if (toRGT.Count > this.maxWidth)
+
+                    if (getHighest)
                     {
-                        return toRGT.Take(this.maxWidth).ToList();
+                        return toREQ;
                     }
-                    else if (toRGT.Count + toREQ.Count > this.maxWidth)
+
+                    Random random = new Random();
+                    if (toRGT.Count >= this.maxWidth)
                     {
-                        List<MoveResult> toR = toRGT;
-                        Random random = new Random();
-                        toR.AddRange(toREQ.OrderBy(x => random.Next()).Take(toR.Count - this.maxWidth).ToList());
+                        return toRGT.OrderBy(x => random.Next()).Take(this.maxWidth).ToList();
+                    }
+                    else if (toRGT.Count + toREQ.Count >= this.maxWidth)
+                    {
+                        List<MoveResult> itemsToAdd = toREQ.OrderBy(x => random.Next()).Take(this.maxWidth - toRGT.Count).ToList();
+                        List<MoveResult> toR = [.. toRGT, .. itemsToAdd];
                         return toR;
                     }
                     else
                     {
-                        List<MoveResult> toR = toRGT;
-                        toR.AddRange(toREQ);
+                        List<MoveResult> toR = [.. toRGT, .. toREQ];
                         return toR;
                     }                    
                 }
             }
             else
             {
-                return ordered;
+                return all;
             }
         }
     }
