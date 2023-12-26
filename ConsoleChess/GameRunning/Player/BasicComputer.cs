@@ -1,5 +1,6 @@
 ﻿using ConsoleChess.AI;
 using ConsoleChess.AI.Openings;
+using ConsoleChess.AI.Variations;
 using ConsoleChess.Model.BoardHelpers;
 using System;
 using System.Collections.Generic;
@@ -11,16 +12,17 @@ namespace ConsoleChess.GameRunning.Player
     {
         public bool isWhite { get; set; }
         private OpeningFileStructure openings {  get; set; }
+        private IComputer computer { get; set; }
         public BasicComputer(bool isWhite, OpeningFileStructure openings)
         {
+            Factory f = new Factory(isWhite);
             this.isWhite = isWhite;
-            this.openings = openings;
+            computer = f.generateComputer("Blitz", openings);
         }
 
         public Move makeTurn(Board b)
         {
-            ComputerBase c = new ComputerBase(openings);
-            return c.getMove(b,isWhite);
+            return computer.getMove(b, isWhite);
         }
     }
 }

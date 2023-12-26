@@ -7,6 +7,7 @@ using ConsoleChesss;
 namespace UnitTest
 {
     [TestClass]
+    //[B1:C3, B8:A6, E2:E3, A6:B4, D1:G4, B4:C2, F1:D3, C2:E1, G1:F3, E1:D3, G4:G7 ]
     public class BoardTest
     {
         [TestMethod]
