@@ -4,6 +4,7 @@ using ConsoleChess.Pieces;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 
 namespace ConsoleChesss
@@ -23,6 +24,20 @@ namespace ConsoleChesss
             this.location = location;
         }
         #region peice movement
+        private static List<Move> removeInCheck(List<Move> moves, bool isWhite, Board b)
+        {
+            List<Move> r = new List<Move>();
+            foreach (Move m in moves)
+            {
+                Board copy = b.DeepCopy();
+                copy.makeMove(m);
+                if (!copy.isInCheck(isWhite))
+                {
+                    r.Add(m);
+                }
+            }
+            return r;
+        }
         public static List<Move> getPossibleMovesPawn(Pawn pieceToMove, Board board)
         {
             //Handle Promotions
@@ -77,11 +92,12 @@ namespace ConsoleChesss
                         }
                     }
                 }
-            }                
+            }
 
-            //still need enpassant            
+            //still need enpassant
+            //still need promotion
 
-            return moves;
+            return removeInCheck(moves, pieceToMove.isWhite, board);
         }
         public static List<Move> getPossibleMovesRook(IPieces pieceToMove, Board board)
         {
@@ -98,11 +114,11 @@ namespace ConsoleChesss
             {
                 moves.Add(newMoves);
             }
-            return moves;
+            return removeInCheck(moves, pieceToMove.isWhite, board);
         }
         public static List<Move> getPossibleMovesKnight(IPieces pieceToMove, Board board)
         {
-            List<Move> r = new List<Move>();
+            List<Move> moves = new List<Move>();
             int fromXCoord = pieceToMove.location.getXCoord();
             int fromYCoord = pieceToMove.location.getYCoord();
 
@@ -110,18 +126,18 @@ namespace ConsoleChesss
             {
                 for (int y = -2; y <= 2; y++)
                 {
-                    if(x != 0 && y!= 0 && Math.Pow(x,2) != Math.Pow(y, 2) && (fromXCoord + x < 8) && (fromXCoord + x >= 0) && (fromYCoord + y < 8) && (fromYCoord + y >= 0))
+                    if(x != 0 && y!= 0 && Math.Pow(x,2) != Math.Pow(y, 2) && Board.isOnBoard(fromXCoord + x, fromYCoord + y))
                     {
                         string current = board.layout[fromXCoord + x, fromYCoord + y];
                         if (String.IsNullOrEmpty(current) || (pieceToMove.isWhite ? current[0] == 'B' : current[0] == 'W'))
                         {
-                            r.Add(new Move(pieceToMove.location, new Location(fromXCoord + x, fromYCoord + y)));
+                            moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + x, fromYCoord + y)));
                         }
                     }
                 }
-            }                      
+            }
 
-            return r;
+            return removeInCheck(moves, pieceToMove.isWhite, board);
         }
         public static List<Move> getPossibleMovesBishop(IPieces pieceToMove, Board board)
         {
@@ -138,7 +154,7 @@ namespace ConsoleChesss
             {
                 moves.Add(newMoves);
             }
-            return moves;
+            return removeInCheck(moves, pieceToMove.isWhite, board);
         }
         public static List<Move> getPossibleMovesQueen(IPieces pieceToMove, Board board)
         {
@@ -146,7 +162,7 @@ namespace ConsoleChesss
             all.AddRange(getPossibleMovesRook(pieceToMove, board));
             return all;
         }
-        public static List<Move> getPossibleMovesKing(King pieceToMove, Board board)
+        public static List<Move> getPossibleMovesKing(King pieceToMove, Board board, bool includeCastle = true)
         {
             List<Move> moves = new List<Move>();
             int fromXCoord = pieceToMove.location.getXCoord();
@@ -177,10 +193,76 @@ namespace ConsoleChesss
                 }
             }
 
-            //need castle
+            //and not in check
+            if (pieceToMove.numberOfMoves == 0 && includeCastle && !board.isInCheck(pieceToMove.isWhite))
+            {
+                //queenside
+                if (String.IsNullOrEmpty(board.layout[fromXCoord - 1, fromYCoord]) && 
+                    String.IsNullOrEmpty(board.layout[fromXCoord - 2, fromYCoord]) &&
+                    String.IsNullOrEmpty(board.layout[fromXCoord - 3, fromYCoord]))
+                {
+                    IPieces rook = board.allPeices.Where(o => o.location.getYCoord() == fromYCoord && o.location.getXCoord() == fromXCoord - 4).Select(o => o).FirstOrDefault();
+                    if (rook != null)
+                    {
+                        if (rook.id[0] == pieceToMove.id[0] &&
+                            rook.id[1] == 'R')
+                        {
+                            List<string> locationsToCheck = new List<string>();
+                            locationsToCheck.Add(new Location(fromXCoord - 1, fromYCoord).ToString());
+                            locationsToCheck.Add(new Location(fromXCoord - 2, fromYCoord).ToString());
+                            locationsToCheck.Add(new Location(fromXCoord - 3, fromYCoord).ToString());
 
-            return moves;
-            
+                            List<Move> oppMoves = board.getAllMoves(!pieceToMove.isWhite, false);
+                            bool movingThroughCheck = false;
+                            foreach (Move move in oppMoves)
+                            {
+                                if (locationsToCheck.Contains(move.toLocation.ToString()))
+                                {
+                                    movingThroughCheck = true; break;
+                                }
+                            }
+                            if (!movingThroughCheck)
+                            {
+                                moves.Add(new Move(pieceToMove.location, new Location(fromXCoord - 2, fromYCoord)));
+                            }
+                        }
+                    }
+                }
+
+                //kingside
+                if (String.IsNullOrEmpty(board.layout[fromXCoord + 1, fromYCoord]) &&
+                    String.IsNullOrEmpty(board.layout[fromXCoord + 2, fromYCoord]))
+                {
+                    IPieces rook = board.allPeices.Where(o => o.location.getYCoord() == fromYCoord && o.location.getXCoord() == fromXCoord + 3).Select(o => o).FirstOrDefault();
+                    if (rook != null)
+                    {
+                        if (rook.id[0] == pieceToMove.id[0] &&
+                            rook.id[1] == 'R' )
+                        {
+                            List<string> locationsToCheck = new List<string>();
+                            locationsToCheck.Add(new Location(fromXCoord + 1, fromYCoord).ToString());
+                            locationsToCheck.Add(new Location(fromXCoord + 2, fromYCoord).ToString());
+
+                            List<Move> oppMoves = board.getAllMoves(!pieceToMove.isWhite, false);
+                            bool movingThroughCheck = false;
+                            foreach (Move move in oppMoves)
+                            {
+                                if (locationsToCheck.Contains(move.toLocation.ToString()))
+                                {
+                                    movingThroughCheck = true; break;
+                                }
+                            }
+                            if (!movingThroughCheck)
+                            {
+                                moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + 2, fromYCoord)));
+                            }
+                        }
+                    }
+                }
+            }
+
+            return removeInCheck(moves, pieceToMove.isWhite, board);
+
         }
         private static List<Move> getMovesInDirection(IPieces pieceToMove, int x, int y, Board board)
         {

@@ -15,13 +15,13 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Diagnostics;
+using System.Collections;
+using System.Drawing;
 
 namespace ConsoleChess.AI
 {
     public class ComputerBase
     {
-        public static readonly Dictionary<Char, Int16> peiceValues = new Dictionary<Char, Int16>() { { 'P', 1 }, { 'B', 3 }, { 'N', 3 }, { 'R', 5 }, { 'Q', 9 }, { 'K', 90 } };
-        
         public static Move searchOpenings(OpeningFileStructure openingFileStructure, Board b, bool isWhite)
         {
             Move move = null;
@@ -42,24 +42,32 @@ namespace ConsoleChess.AI
             }
             return move;
         }
-        public static int getPeiceValue(IPieces p)
-        {
-            char type = p.id[1] == 'P' ? ((Pawn)p).moveType : p.id[1];
-            return peiceValues[type];
-        }
 
-        public static double getValueOfThreatening(Board b, List<Move> moves)
+        /**
+         * Both sides have no queens or
+         * Every side which has a queen has additionally no other pieces or one minorpiece maximum.
+         */
+        public static bool isEndGame(Board b)
         {
-            double r = 0;
-            foreach (Move move in moves)
+            int queens = 0;
+            int minors = 0;
+            foreach (IPieces p in b.allPeices)
             {
-                IPieces taken = b.allPeices.Where(o => o.location.Equals(move.toLocation) && o.id.ToUpper()[1] != 'K').Select(o => o).FirstOrDefault();
-                if (taken != null)
+                char type = p.id[1] == 'P' ? ((Pawn)p).moveType : p.id[1];
+                if (type == 'Q')
                 {
-                    r += ComputerBase.getPeiceValue(taken);
+                    queens++;
+                }
+                else if (type == 'N' || type == 'B')
+                {
+                    minors++;
                 }
             }
-            return r;
+            if (queens == 0 || (queens == 2 && minors <= 1)) {
+                return true;
+            }
+            return false;
         }
+        
     }
 }

@@ -16,12 +16,14 @@ namespace ConsoleChess.AI.Variations
         {
             switch (typeStr) {
                 case "Blitz":
-                    return new Classic(openings, 1, 5);
+                    return new Classic(openings, 2, 8);
+                case "Deep":
+                    return new Classic(openings, 7, 8);
                 default:
                     Console.WriteLine("Unrecognised type: " + typeStr);
                     break;
             }
-            return new Classic(openings, 1, 5);
+            return new Classic(openings);
         }
     }
 }

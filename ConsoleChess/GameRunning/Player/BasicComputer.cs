@@ -13,11 +13,11 @@ namespace ConsoleChess.GameRunning.Player
         public bool isWhite { get; set; }
         private OpeningFileStructure openings {  get; set; }
         private IComputer computer { get; set; }
-        public BasicComputer(bool isWhite, OpeningFileStructure openings)
+        public BasicComputer(bool isWhite, OpeningFileStructure openings, string typeStr = "Blitz")
         {
             Factory f = new Factory(isWhite);
             this.isWhite = isWhite;
-            computer = f.generateComputer("Blitz", openings);
+            computer = f.generateComputer(typeStr, openings);
         }
 
         public Move makeTurn(Board b)

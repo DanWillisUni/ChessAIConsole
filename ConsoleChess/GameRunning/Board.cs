@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Runtime.InteropServices;
+using ConsoleChesss;
 
 namespace ConsoleChess.GameRunning
 {
@@ -76,11 +77,40 @@ namespace ConsoleChess.GameRunning
         public void makeMove(Move move)
         {
             IPieces moving = allPeices.Where(o => o.location.Equals(move.fromLocation)).Select(o => o).FirstOrDefault();
+            //castling
+            if (moving.id[1] == 'K' && moving.numberOfMoves == 0)
+            {
+                int directionOfTravel = move.fromLocation.getXCoord() - move.toLocation.getXCoord();
+                if (Math.Abs(directionOfTravel) > 1) //check if attempting to castle
+                {
+                    Location rookMoveFrom = null;
+                    Location rookMoveTo = null;
+                    if (directionOfTravel > 0)
+                    {
+                        rookMoveFrom = new Location(move.fromLocation.getXCoord() - 4, move.fromLocation.getYCoord());
+                        rookMoveTo = new Location(move.toLocation.getXCoord() + 1, move.toLocation.getYCoord());
+                    }
+                    else if (directionOfTravel < 0)
+                    {
+                        rookMoveFrom = new Location(move.fromLocation.getXCoord() + 3, move.fromLocation.getYCoord());
+                        rookMoveTo = new Location(move.toLocation.getXCoord() - 1, move.toLocation.getYCoord());
+                    }
+                    if (rookMoveFrom != null && rookMoveTo != null)
+                    {
+                        IPieces rook = allPeices.Where(o => o.location.Equals(rookMoveFrom)).Select(o => o).FirstOrDefault();
+                        allPeices.Remove(rook);
+                        rook.numberOfMoves += 1;
+                        rook.location = rookMoveTo;
+                        allPeices.Add(rook);
+                    }
+                }
+            }
             IPieces taken = allPeices.Where(o => o.location.Equals(move.toLocation)).Select(o => o).FirstOrDefault();
             //taken.location = new Location();            
             allPeices.Remove(taken);
             allPeices.Remove(moving);
             moving.location = move.toLocation;
+            moving.numberOfMoves += 1;
             allPeices.Add(moving);
             updateLayout();
             pastMoves.Add(move);
@@ -209,7 +239,7 @@ namespace ConsoleChess.GameRunning
             Console.WriteLine("");
         }
 
-        public List<Move> getAllMoves(bool isWhite)
+        public List<Move> getAllMoves(bool isWhite, bool includeCastle = true)
         {
             List<IPieces> pieces = (from p in this.allPeices
                                     where p.isWhite == isWhite
@@ -217,31 +247,109 @@ namespace ConsoleChess.GameRunning
             List<Move> all = new List<Move>();
             foreach (IPieces p in pieces)
             {
-                all.AddRange(p.getPossibleMoves(this));
+                if (p.id[1] == 'K')
+                {
+                    King k = (King)p;
+                    all.AddRange(BasicPiece.getPossibleMovesKing(k, this, includeCastle));
+                }
+                else
+                {
+                    all.AddRange(p.getPossibleMoves(this));
+                }
             }
             return all;
         }
 
-        internal bool isInCheck(King king)
-        {/*
-            for(int y = 0; y > 7; y++)
+        public bool isInCheck(bool isWhite)
+        {
+            IPieces k = allPeices.Where(o => o.isWhite == isWhite && o.id[1] == 'K').Select(o => o).FirstOrDefault();
+
+            char oppColourChar = isWhite ? 'B' : 'W';
+            
+            int fromXCoord = k.location.getXCoord();
+            int fromYCoord = k.location.getYCoord();
+            int forwardMultiplyer = (k.isWhite ? 1 : -1);
+
+            //knight
+            for (int x = -2; x <= 2; x++)
             {
-                for (int x = 0; x > 7; x++)
+                for (int y = -2; y <= 2; y++)
                 {
-                    IPieces current = allPeices[x][y];
-                    if (current.isWhite != king.isWhite)
+                    if (x != 0 && y != 0 && Math.Pow(x, 2) != Math.Pow(y, 2) && Board.isOnBoard(fromXCoord + x, fromYCoord + y))
                     {
-                        List<Move> currentMoves = current.getAllMoves(this);
-                        foreach(Move m in currentMoves)
+                        string current = layout[fromXCoord + x, fromYCoord + y];
+                        if (!String.IsNullOrEmpty(current))
                         {
-                            if(m.toLocation == king.location)
+                            if (current[0] == oppColourChar && current[1] == 'N')
                             {
                                 return true;
                             }
                         }
                     }
                 }
-            }*/
+            }
+
+            List<bool> results = new List<bool>();
+            //queen and bishop
+            results.Add(isInCheckDirection(fromXCoord, fromYCoord, -1, -1, oppColourChar, new List<char> { 'Q', 'B' }));
+            results.Add(isInCheckDirection(fromXCoord, fromYCoord, -1, 1, oppColourChar, new List<char> { 'Q', 'B' }));
+            results.Add(isInCheckDirection(fromXCoord, fromYCoord, 1, 1, oppColourChar, new List<char> { 'Q', 'B' }));
+            results.Add(isInCheckDirection(fromXCoord, fromYCoord, 1, -1, oppColourChar, new List<char> { 'Q', 'B' }));
+
+            //rook and queen
+            results.Add(isInCheckDirection(fromXCoord, fromYCoord, -1, 0, oppColourChar, new List<char> { 'Q', 'R' }));
+            results.Add(isInCheckDirection(fromXCoord, fromYCoord, 1, 0, oppColourChar, new List<char> { 'Q', 'R' }));
+            results.Add(isInCheckDirection(fromXCoord, fromYCoord, 0, 1, oppColourChar, new List<char> { 'Q', 'R' }));
+            results.Add(isInCheckDirection(fromXCoord, fromYCoord, 0, -1, oppColourChar, new List<char> { 'Q', 'R' }));
+            if (results.Contains(true))
+            {
+                return true;
+            }
+
+            //pawn
+            for (int x = -1; x < 2; x += 2)
+            {
+                if (Board.isOnBoard(fromXCoord + x, fromYCoord + forwardMultiplyer))
+                {
+                    if (!String.IsNullOrEmpty(layout[fromXCoord + x, fromYCoord + forwardMultiplyer]))
+                    {
+                        string current = layout[fromXCoord + x, fromYCoord + forwardMultiplyer];
+                        if (current[0] == oppColourChar && current[1] == 'P')
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool isInCheckDirection(int fromXCoord, int fromYCoord, int x, int y, char oppColourChar, List<char> leathalPeices)
+        {
+            bool canContinue = true;
+            int count = 0;
+            do
+            {
+                count++;
+                if (!Board.isOnBoard(fromXCoord + (x * count), fromYCoord + (y * count)))
+                {
+                    canContinue = false;
+                }
+                else
+                {
+                    string current = layout[fromXCoord + (x * count), fromYCoord + (y * count)];
+                    if (!String.IsNullOrEmpty(current))
+                    {
+                        if (current[0] == oppColourChar && leathalPeices.Contains(current[1]))
+                        {
+                            return true;
+                        }
+                        canContinue = false;
+                    }
+                }
+
+            } while (canContinue);
             return false;
         }
 
@@ -326,6 +434,25 @@ namespace ConsoleChess.GameRunning
             }
             allPeices.Add(newOne);
             updateLayout();
+        }
+        public void addPeice(char type, bool isWhite, string location)
+        {
+            addPeice(generateID(type, isWhite), new Location(location));
+        }
+        public string generateID(char type, bool isWhite)
+        {
+            string r = isWhite ? "W" : "B";
+            int countType = 1;
+            foreach (IPieces p in allPeices)
+            {
+                if (p.id[1] == type && p.id[0].ToString() == r)
+                {
+                    countType++;
+                }
+            }
+            r += type;
+            r += countType.ToString();
+            return r;
         }
     }
 }

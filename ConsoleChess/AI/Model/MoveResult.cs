@@ -23,9 +23,22 @@ namespace ConsoleChess.AI.Model
         public override string ToString() 
         {
             string pastMovesStr = string.Empty;
+            bool passedMove = false;
             foreach(Move m in boardAfterMove.pastMoves)
             {
-                pastMovesStr += m.ToString() + ", ";
+                if (passedMove)
+                {
+                    pastMovesStr += m.ToString() + ", ";
+                }
+                else
+                {
+                    if (m.ToString() == originalMove.ToString())
+                    {
+                        pastMovesStr += m.ToString() + ", ";
+                        passedMove = true;
+                    }
+                }
+                
             }
             return "Move: " + originalMove.ToString() + " Board: " + boardAfterMove.printAsString() + " Moves: (" + boardAfterMove.pastMoves.Count + ") [" + pastMovesStr + "] - Score: " + score; 
         }

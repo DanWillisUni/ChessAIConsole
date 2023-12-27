@@ -14,7 +14,7 @@ namespace ConsoleChess.AI.Variations
 {
     public class Classic : IComputer
     {
-        public Classic(OpeningFileStructure openings, int maxDepth = 4, int maxWidth = 5)
+        public Classic(OpeningFileStructure openings, int maxDepth = 4, int maxWidth = 8)
         {
             this.openings = openings;
             this.maxDepth = maxDepth;
@@ -41,8 +41,11 @@ namespace ConsoleChess.AI.Variations
                 move = calculateMove(b, isWhite);
             }
             stopwatch.Stop();
-            var elapsed_time = stopwatch.ElapsedMilliseconds;
-            Console.WriteLine("Got move in: " + elapsed_time);
+            var elapsedTime = stopwatch.ElapsedMilliseconds;
+            string elapsedTimeStr = elapsedTime.ToString() + "ms";
+            if (elapsedTime > 1000) { elapsedTimeStr = Math.Round((double)elapsedTime / 1000, 2).ToString() + "s"; }
+            if (elapsedTime > 60000) { elapsedTimeStr = ((int)(elapsedTime / 60000)).ToString() + "m " + Math.Round((double)((elapsedTime % 60000) / 1000), 2).ToString() + "s"; }
+            Console.WriteLine("Got move in: " + elapsedTimeStr);
             return move;
         }
 
@@ -69,6 +72,7 @@ namespace ConsoleChess.AI.Variations
             }
             return new MoveResult(currentMove, lowestScore, lowestCounterBoard);
         }
+
         #region scoring
         private double getScore(Board b, bool isWhite)
         {
@@ -78,8 +82,10 @@ namespace ConsoleChess.AI.Variations
 
             foreach (IPieces p in b.allPeices)
             {
-                int value = ComputerBase.getPeiceValue(p);
+                double value = Scoring.getPeiceValue(p);
                 r = (p.isWhite == isWhite) ? r + value : r - value;
+                double peiceSquareValue = Scoring.getPeiceSquareValue(p, ComputerBase.isEndGame(b));
+                r = (p.isWhite == isWhite) ? r + peiceSquareValue : r - peiceSquareValue;
             }
 
             // number of possible moves
@@ -88,8 +94,8 @@ namespace ConsoleChess.AI.Variations
             int moveNumberDiff = ourMoves.Count - oppMoves.Count;
             r += moveNumberDiff * 0.1;
 
-            r += 0.1 * ComputerBase.getValueOfThreatening(b, ourMoves);
-            r -= 0.1 * ComputerBase.getValueOfThreatening(b, oppMoves);
+            r += 0.1 * Scoring.getValueOfThreatening(b, ourMoves);
+            r -= 0.1 * Scoring.getValueOfThreatening(b, oppMoves);
 
             for (int x = 0; x <= 7; x++)
             {
@@ -147,7 +153,6 @@ namespace ConsoleChess.AI.Variations
             //D, S, I = doubled, blocked and isolated pawns
             return Math.Round(r, 3, MidpointRounding.AwayFromZero);
         }
-
         #endregion
         private Move calculateMove(Board b, bool isWhite)
         {
@@ -158,10 +163,29 @@ namespace ConsoleChess.AI.Variations
             {
                 return all[0];
             }
-            List<MoveResult> results = new List<MoveResult>();
-            Parallel.For<List<MoveResult>>(0, all.Count, () => new List<MoveResult>(), (i, loop, threadResults) => //multithreaded for loop
+
+            List<Move> movesToSearch = new List<Move>();
+            if (maxDepth >= 2)
             {
-                threadResults.Add(getMoveFirstIteration(all[(int)i], b, isWhite));
+                List<MoveResult> firstResult = new List<MoveResult>();
+                foreach (Move move in all)
+                {
+                    firstResult.Add(getBestCounter(move, b, isWhite));
+                }
+                foreach (MoveResult mr in prune(firstResult))
+                {
+                    movesToSearch.Add(mr.originalMove);
+                }
+            }
+            else
+            {
+                movesToSearch = all;
+            }
+
+            List<MoveResult> results = new List<MoveResult>();
+            Parallel.For<List<MoveResult>>(0, movesToSearch.Count, () => new List<MoveResult>(), (i, loop, threadResults) => //multithreaded for loop
+            {
+                threadResults.Add(getMoveFirstIteration(movesToSearch[(int)i], b, isWhite));
                 return threadResults;//return the thread results
             },
             (threadResults) => {
