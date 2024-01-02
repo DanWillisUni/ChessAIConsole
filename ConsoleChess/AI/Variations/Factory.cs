@@ -17,6 +17,10 @@ namespace ConsoleChess.AI.Variations
             switch (typeStr) {
                 case "Blitz":
                     return new Classic(openings, 2, 8);
+                case "All1":
+                    return new Classic(openings, 1, 0);
+                case "All2":
+                    return new Classic(openings, 2, 0);
                 case "Deep":
                     return new Classic(openings, 7, 8);
                 default:

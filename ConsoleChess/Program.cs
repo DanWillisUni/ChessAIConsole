@@ -2,6 +2,8 @@
 using ConsoleChess.GameRunning;
 using ConsoleChess.GameRunning.Player;
 using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace ConsoleChess
 {
@@ -10,6 +12,7 @@ namespace ConsoleChess
         static void Main(string[] args)
         {
             string rootDir = "ChessFilesRoot\\";
+            string gameDir = "Games\\";
             OpeningFileStructure openingFileStructure = initOpenings(rootDir);
 
             Random random = new Random();
@@ -18,7 +21,21 @@ namespace ConsoleChess
             string gameType = "Blitz";//intro(); 
             IPlayer computer = new BasicComputer((humanIsWhite == 1), openingFileStructure, gameType);
             Game game = (humanIsWhite == 0) ? new Game(human, computer) : new Game(computer, human);
-            game.Start();
+            runGame(game, rootDir, gameDir);
+        }
+
+        private static void runGame(Game g, string rootDir, string gameDir)
+        {
+            string command = g.run();
+            if (command == "SAVE")
+            {
+                save(rootDir, gameDir, g);
+            }
+            else if (command == "LOAD")
+            {
+                Game game = load(rootDir, gameDir);
+                runGame(game, rootDir, gameDir);
+            }
         }
 
         private static string intro()
@@ -32,7 +49,7 @@ namespace ConsoleChess
             Console.WriteLine("CheckMate to Win");
             Console.WriteLine("FiveFold, Stalemate and Insufficient Material Draw are the ways to draw");
             Console.WriteLine();
-            Console.WriteLine("Which game would you like to play [Blitz, Deep]");
+            Console.WriteLine("Which gamemode would you like to play [Blitz, Deep]");
             string r = Console.ReadLine();
             return r;
         }
@@ -46,6 +63,68 @@ namespace ConsoleChess
             go.generate();
             OpeningFileStructure openingFileStructure = new OpeningFileStructure(openingsDir, openingsWhiteFile, openingsBlackFile);
             return openingFileStructure;
+        }
+
+        private static void save(string rootDir, string gameDir, Game g)
+        {
+            if (!Directory.Exists(rootDir + gameDir))
+            {
+                Directory.CreateDirectory(rootDir + gameDir);
+            }
+
+            //get name
+            string gameName = "";
+            while (String.IsNullOrEmpty(gameName))
+            {
+                Console.WriteLine("What do you want to call the game");
+                gameName = Console.ReadLine();
+
+                if (File.Exists(rootDir + gameDir + gameName + ".txt"))
+                {
+                    string yorn = "";
+                    List<string> acceptedAnswers = new List<string> { "y", "n", "yes", "no" };
+                    while (!acceptedAnswers.Contains(yorn.ToLower()))
+                    {
+                        Console.WriteLine("Do you wish to overwrite existing file? (y/n)");
+                        yorn = Console.ReadLine();
+                    }
+                    if (yorn.ToLower().StartsWith('n'))
+                    {
+                        gameName = "";
+                    }
+                }
+            }
+
+            string filePath = rootDir + gameDir + gameName + ".txt";
+
+            g.save(filePath);
+        }
+
+        private static Game load(string rootDir, string gameDir)
+        {
+            if (!Directory.Exists(rootDir + gameDir))
+            {
+                Directory.CreateDirectory(rootDir + gameDir);
+            }
+
+            //get name
+            string gameName = "";
+            while (String.IsNullOrEmpty(gameName))
+            {
+                Console.WriteLine("What is the game called");
+                gameName = Console.ReadLine();
+
+                if (!File.Exists(rootDir + gameDir + gameName + ".txt"))
+                {
+                    Console.WriteLine($"{gameName} does not exist");
+                    gameName = "";
+                }
+            }
+
+            string filePath = rootDir + gameDir + gameName + ".txt";
+
+            Game r = Game.load(filePath);
+            return r;
         }
     }
 }

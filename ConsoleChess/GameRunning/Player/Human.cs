@@ -1,4 +1,5 @@
 ﻿using ConsoleChess.Model.BoardHelpers;
+using ConsoleChesss;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,7 +16,7 @@ namespace ConsoleChess.GameRunning.Player
             this.isWhite = isWhite;
         }
 
-        public Move makeTurn(Board b)
+        public MoveReturn makeTurn(Board b)
         {
             bool invalidEntry = true;
             Move r = null;
@@ -26,7 +27,7 @@ namespace ConsoleChess.GameRunning.Player
                 string fromStr = Console.ReadLine().ToUpper();
                 if (fromStr.ToLower() == "save")
                 {
-                    save();
+                    return new MoveReturn("SAVE", null);
                 }
 
                 Console.WriteLine("Where would you like to move to");
@@ -40,7 +41,7 @@ namespace ConsoleChess.GameRunning.Player
                 }
                 else if (toStr.ToLower() == "save")
                 {
-                    save();
+                    return new MoveReturn("SAVE", null);
                 }
 
                 if (!back)
@@ -49,6 +50,7 @@ namespace ConsoleChess.GameRunning.Player
                     {
                         r = new Move(new Location(fromStr), new Location(toStr));
                         List<Move> moves = b.getAllMoves(isWhite);
+                        moves = BasicPiece.removeInCheck(moves, isWhite, b); //faster for computer to just do this instead
                         foreach (Move m in moves)
                         {
                             if (m.Equals(r))
@@ -64,16 +66,9 @@ namespace ConsoleChess.GameRunning.Player
                         Console.WriteLine("Invalid entry");
                     }
                 }
-            }            
+            }
 
-            return r;
-
-        }
-
-        private void save()
-        {
-            Console.WriteLine("What do you want to call the game");
-
+            return new MoveReturn("", r);
         }
     }
 }

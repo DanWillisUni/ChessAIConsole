@@ -38,7 +38,6 @@ namespace ConsoleChess.AI.Model
                         passedMove = true;
                     }
                 }
-                
             }
             return "Move: " + originalMove.ToString() + " Board: " + boardAfterMove.printAsString() + " Moves: (" + boardAfterMove.pastMoves.Count + ") [" + pastMovesStr + "] - Score: " + score; 
         }

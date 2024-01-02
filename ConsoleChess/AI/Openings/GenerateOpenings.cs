@@ -196,9 +196,7 @@ namespace ConsoleChess.AI.Openings
             Board d4d5f3f6f4 = d4d5f3f6.DeepCopy();
             d4d5f3f6f4.makeMove(new Move("C1:F4"));
             bookOpenings.Add(new BookOpenings(d4d5f3f6f4, false, new List<string> { "C7:C5", "E7:E6" }));
-
             #endregion
-
 
             publish(bookOpenings);
         }

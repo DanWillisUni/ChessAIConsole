@@ -1,4 +1,5 @@
 ﻿using ConsoleChess.AI;
+using ConsoleChess.AI.Model;
 using ConsoleChess.AI.Openings;
 using ConsoleChess.AI.Variations;
 using ConsoleChess.Model.BoardHelpers;
@@ -20,9 +21,9 @@ namespace ConsoleChess.GameRunning.Player
             computer = f.generateComputer(typeStr, openings);
         }
 
-        public Move makeTurn(Board b)
+        public MoveReturn makeTurn(Board b)
         {
-            return computer.getMove(b, isWhite);
+            return new MoveReturn("", computer.getMove(b, isWhite));
         }
     }
 }

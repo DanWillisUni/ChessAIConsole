@@ -76,15 +76,28 @@ namespace ConsoleChess.AI.Variations
         #region scoring
         private double getScore(Board b, bool isWhite)
         {
+            double kingSquareNotThreatenedCoeffiecient = 0.1;
+            double kingSquareNotThreatenedEndCoeffiecient = 0.3;
+            double peiceSquaredValueCoefficient = 1;
+            double mobilityCoeffiecient = 0.1;
+            double valueOfThreateningCoefficient = 0.1;
+            double doublePawnCoefficient = 0.5;
+            double blockedPawnCoefficient = 0.5;
+            double pawnShieldCoefficient = 1;
+            if (ComputerBase.isEndGame(b))
+            {
+                kingSquareNotThreatenedCoeffiecient = kingSquareNotThreatenedEndCoeffiecient;
+            }
+
             double r = 0;
             int forwardMultiplyer = isWhite ? 1 : -1;
             char isWhiteChar = isWhite ? 'W' : 'B';
 
             foreach (IPieces p in b.allPeices)
             {
-                double value = Scoring.getPeiceValue(p);
+                double value = Scoring.getPeiceValueStandard(p);
                 r = (p.isWhite == isWhite) ? r + value : r - value;
-                double peiceSquareValue = Scoring.getPeiceSquareValue(p, ComputerBase.isEndGame(b));
+                double peiceSquareValue = peiceSquaredValueCoefficient * Scoring.getPeiceSquareValue(p, ComputerBase.isEndGame(b));
                 r = (p.isWhite == isWhite) ? r + peiceSquareValue : r - peiceSquareValue;
             }
 
@@ -92,10 +105,13 @@ namespace ConsoleChess.AI.Variations
             List<Move> ourMoves = b.getAllMoves(isWhite);
             List<Move> oppMoves = b.getAllMoves(!isWhite);
             int moveNumberDiff = ourMoves.Count - oppMoves.Count;
-            r += moveNumberDiff * 0.1;
+            r += moveNumberDiff * mobilityCoeffiecient;
 
-            r += 0.1 * Scoring.getValueOfThreatening(b, ourMoves);
-            r -= 0.1 * Scoring.getValueOfThreatening(b, oppMoves);
+            r += valueOfThreateningCoefficient * Scoring.getValueOfThreatening(b, ourMoves);
+            r -= valueOfThreateningCoefficient * Scoring.getValueOfThreatening(b, oppMoves);
+
+            r += kingSquareNotThreatenedCoeffiecient * Scoring.squaresAroundKingNotThreatened(b, isWhite);
+            r -= kingSquareNotThreatenedCoeffiecient * Scoring.squaresAroundKingNotThreatened(b, !isWhite);
 
             for (int x = 0; x <= 7; x++)
             {
@@ -115,7 +131,7 @@ namespace ConsoleChess.AI.Variations
                                 {
                                     if (b.layout[x, y + forwardMultiplyer] != null)
                                     {
-                                        r += 0.5;
+                                        r -= blockedPawnCoefficient;
                                     }
                                 }
                             }
@@ -126,21 +142,53 @@ namespace ConsoleChess.AI.Variations
                                 {
                                     if (b.layout[x, y - forwardMultiplyer] != null)
                                     {
-                                        r -= 0.5;
+                                        r += blockedPawnCoefficient;
                                     }
                                 }
                             }
+                        }
+                        else if (b.layout[x, y].ToUpper()[1] == 'K')
+                        {
+                            char kingColour = b.layout[x, y].ToUpper()[0];
+                            int peiceForwardMultiplyer = isWhiteChar == kingColour ? forwardMultiplyer : forwardMultiplyer * -1;
+                            bool hasPawnShield = true;
+                            for (int xIncrease = -1; xIncrease <= 1; xIncrease++)
+                            {
+                                if (hasPawnShield)
+                                {
+                                    for (int yIncrease = 1; yIncrease <= 2; yIncrease++)
+                                    {
+                                        if (Board.isOnBoard(x + xIncrease, y + (peiceForwardMultiplyer * yIncrease)))
+                                        {
+                                            string currentID = b.layout[x + xIncrease, y + (peiceForwardMultiplyer * yIncrease)].ToUpper();
+                                            if (currentID[1] == 'P' && currentID[0] == kingColour)
+                                            {
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                hasPawnShield = false;
+                                                break;
+                                            }
+                                        }
 
+                                    }
+                                }
+                            }
+                            if (hasPawnShield)
+                            {
+                                r += (kingColour == isWhiteChar ? pawnShieldCoefficient : -1 * pawnShieldCoefficient);
+                            }
                         }
                     }
                 }
                 if (ourPawnsPerColumn > 1)
                 {
-                    r += 0.5;
+                    r -= doublePawnCoefficient;
                 }
                 if (opponentsPawnsPerColumn > 1)
                 {
-                    r -= 0.5;
+                    r += doublePawnCoefficient;
                 }
             }
 
@@ -256,7 +304,7 @@ namespace ConsoleChess.AI.Variations
         }
         private List<MoveResult> prune(List<MoveResult> all, bool getHighest = false)
         {
-            if (all.Count > this.maxWidth)
+            if (all.Count > this.maxWidth && this.maxWidth > 0)
             {
                 List<MoveResult> ordered = all.OrderByDescending(o => o.score).ToList();
                 double scoreToBeat = ordered[0].score;

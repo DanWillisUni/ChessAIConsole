@@ -264,11 +264,20 @@ namespace ConsoleChess.GameRunning
         {
             IPieces k = allPeices.Where(o => o.isWhite == isWhite && o.id[1] == 'K').Select(o => o).FirstOrDefault();
 
+            if (k != null)
+            {
+                return isLocationThreatened(isWhite, k.location);
+            }
+            return false;
+        }
+
+        public bool isLocationThreatened(bool isWhite, Location l)
+        {
             char oppColourChar = isWhite ? 'B' : 'W';
-            
-            int fromXCoord = k.location.getXCoord();
-            int fromYCoord = k.location.getYCoord();
-            int forwardMultiplyer = (k.isWhite ? 1 : -1);
+
+            int fromXCoord = l.getXCoord();
+            int fromYCoord = l.getYCoord();
+            int forwardMultiplyer = (isWhite ? 1 : -1);
 
             //knight
             for (int x = -2; x <= 2; x++)
@@ -353,6 +362,33 @@ namespace ConsoleChess.GameRunning
             return false;
         }
 
+        public bool isCheckmate(bool isWhitesTurn)
+        {
+            if (isInCheck(isWhitesTurn))
+            {
+                List<Move> allMoves = this.getAllMoves(isWhitesTurn);
+                List<Move> checkMoves = BasicPiece.removeInCheck(allMoves, isWhitesTurn, this);
+                if (checkMoves.Count == 0)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool isStalemate(bool isWhitesTurn)
+        {
+            //turn but no legal moves
+            List<Move> allMoves = this.getAllMoves(isWhitesTurn);
+            List<Move> checkMoves = BasicPiece.removeInCheck(allMoves, isWhitesTurn, this);
+            if (checkMoves.Count == 0)
+            {
+                return true;
+            }
+            //insuficient material
+            //repeat moves
+            return false;
+        }
         public string printAsString()
         {
             updateLayout();

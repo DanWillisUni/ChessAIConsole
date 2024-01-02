@@ -11,12 +11,14 @@ namespace ConsoleChess.AI.Variations
 {
     public class Scoring
     {
-        public static readonly Dictionary<Char, Int16> peiceValues = new Dictionary<Char, Int16>() { { 'P', 1 }, { 'B', 3 }, { 'N', 3 }, { 'R', 5 }, { 'Q', 9 }, { 'K', 200 } };
-        public static int getPeiceValue(IPieces p)
+        public static readonly Dictionary<Char, Int16> peiceValuesStandard = new Dictionary<Char, Int16>() { { 'P', 1 }, { 'B', 3 }, { 'N', 3 }, { 'R', 5 }, { 'Q', 9 }, { 'K', 200 } };
+        public static int getPeiceValueStandard(IPieces p)
         {
             char type = p.id[1] == 'P' ? ((Pawn)p).moveType : p.id[1];
-            return peiceValues[type];
+            return peiceValuesStandard[type];
         }
+
+        //public static readonly Dictionary<Char, Double> peiceValuesMid = new Dictionary<Char, Double>() { { 'P', 1 }, { 'B', 3.5 }, { 'N', 3.5 }, { 'R', 5.25 }, { 'Q', 10 }, { 'K', 200 } };
 
         public static double getValueOfThreatening(Board b, List<Move> moves)
         {
@@ -26,7 +28,7 @@ namespace ConsoleChess.AI.Variations
                 IPieces taken = b.allPeices.Where(o => o.location.Equals(move.toLocation) && o.id.ToUpper()[1] != 'K').Select(o => o).FirstOrDefault();
                 if (taken != null)
                 {
-                    r += Scoring.getPeiceValue(taken);
+                    r += Scoring.getPeiceValueStandard(taken);
                 }
             }
             return r;
@@ -141,5 +143,32 @@ namespace ConsoleChess.AI.Variations
             return r * 0.01;
         }
         #endregion
+
+        public static int squaresAroundKingNotThreatened(Board b, bool isWhite)
+        {
+            IPieces k = b.allPeices.Where(o => o.isWhite == isWhite && o.id[1] == 'K').Select(o => o).FirstOrDefault();
+
+            int squaresNotThreatened = 0;
+            if (k != null)
+            {
+                int fromXCoord = k.location.getXCoord();
+                int fromYCoord = k.location.getYCoord();
+
+                for (int x = -1; x <= 1; x++)
+                {
+                    for (int y = -1; y <= 1; y++)
+                    {
+                        if (!(x == 0 && y == 0) && Board.isOnBoard(fromXCoord + x, fromYCoord + y))
+                        {
+                            if (!b.isLocationThreatened(isWhite, new Location(fromXCoord + x, fromYCoord + y)))
+                            {
+                                squaresNotThreatened += 1;
+                            }
+                        }
+                    }
+                }
+            }
+            return squaresNotThreatened;
+        }
     }
 }

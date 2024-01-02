@@ -24,7 +24,7 @@ namespace ConsoleChesss
             this.location = location;
         }
         #region peice movement
-        private static List<Move> removeInCheck(List<Move> moves, bool isWhite, Board b)
+        public static List<Move> removeInCheck(List<Move> moves, bool isWhite, Board b)
         {
             List<Move> r = new List<Move>();
             foreach (Move m in moves)
@@ -97,7 +97,8 @@ namespace ConsoleChesss
             //still need enpassant
             //still need promotion
 
-            return removeInCheck(moves, pieceToMove.isWhite, board);
+            //return removeInCheck(moves, pieceToMove.isWhite, board);
+            return moves;
         }
         public static List<Move> getPossibleMovesRook(IPieces pieceToMove, Board board)
         {
@@ -114,7 +115,8 @@ namespace ConsoleChesss
             {
                 moves.Add(newMoves);
             }
-            return removeInCheck(moves, pieceToMove.isWhite, board);
+            //return removeInCheck(moves, pieceToMove.isWhite, board);
+            return moves;
         }
         public static List<Move> getPossibleMovesKnight(IPieces pieceToMove, Board board)
         {
@@ -137,7 +139,8 @@ namespace ConsoleChesss
                 }
             }
 
-            return removeInCheck(moves, pieceToMove.isWhite, board);
+            //return removeInCheck(moves, pieceToMove.isWhite, board);
+            return moves;
         }
         public static List<Move> getPossibleMovesBishop(IPieces pieceToMove, Board board)
         {
@@ -154,7 +157,8 @@ namespace ConsoleChesss
             {
                 moves.Add(newMoves);
             }
-            return removeInCheck(moves, pieceToMove.isWhite, board);
+            //return removeInCheck(moves, pieceToMove.isWhite, board);
+            return moves;
         }
         public static List<Move> getPossibleMovesQueen(IPieces pieceToMove, Board board)
         {
