@@ -24,7 +24,7 @@ namespace ConsoleChess.Model.BoardHelpers
         }
         public Location(string s) : this(s[0], s[1]) { }
         
-        public Location() : this(0,0) { }
+        public Location() : this(0, 0) { }
 
         public int getXCoord()
         {

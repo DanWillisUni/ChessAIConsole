@@ -39,8 +39,6 @@ namespace ConsoleChess.Pieces
                 default:
                     throw new Exception("Not recognised move type");
             }
-
-            
         }
 
         public IPieces DeepCopy()

@@ -3,6 +3,7 @@ using ConsoleChess.AI.Openings;
 using ConsoleChess.GameRunning;
 using ConsoleChess.Model.BoardHelpers;
 using ConsoleChess.Pieces;
+using ConsoleChesss;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -83,7 +84,8 @@ namespace ConsoleChess.AI.Variations
             double valueOfThreateningCoefficient = 0.1;
             double doublePawnCoefficient = 0.5;
             double blockedPawnCoefficient = 0.5;
-            double pawnShieldCoefficient = 1;
+            double pawnShieldCoefficient = 2;
+            double castlingCoefficient = 2;
             if (ComputerBase.isEndGame(b))
             {
                 kingSquareNotThreatenedCoeffiecient = kingSquareNotThreatenedEndCoeffiecient;
@@ -99,6 +101,14 @@ namespace ConsoleChess.AI.Variations
                 r = (p.isWhite == isWhite) ? r + value : r - value;
                 double peiceSquareValue = peiceSquaredValueCoefficient * Scoring.getPeiceSquareValue(p, ComputerBase.isEndGame(b));
                 r = (p.isWhite == isWhite) ? r + peiceSquareValue : r - peiceSquareValue;
+                if (p.id.ToUpper()[1] == 'K')
+                {
+                    King k = (King)p;
+                    if (k.hasCastled)
+                    {
+                        r += isWhiteChar == k.id.ToUpper()[0] ? castlingCoefficient : castlingCoefficient * -1;
+                    }
+                }
             }
 
             // number of possible moves
@@ -156,22 +166,31 @@ namespace ConsoleChess.AI.Variations
                             {
                                 if (hasPawnShield)
                                 {
-                                    for (int yIncrease = 1; yIncrease <= 2; yIncrease++)
+                                    if (Board.isOnBoard(x + xIncrease, y + (peiceForwardMultiplyer * 1)))
                                     {
-                                        if (Board.isOnBoard(x + xIncrease, y + (peiceForwardMultiplyer * yIncrease)))
+                                        string currentID = "";
+                                        if (b.layout[x + xIncrease, y + (peiceForwardMultiplyer * 1)] != null)
                                         {
-                                            string currentID = b.layout[x + xIncrease, y + (peiceForwardMultiplyer * yIncrease)].ToUpper();
-                                            if (currentID[1] == 'P' && currentID[0] == kingColour)
-                                            {
-                                                break;
-                                            }
-                                            else
-                                            {
-                                                hasPawnShield = false;
-                                                break;
-                                            }
+                                            currentID = b.layout[x + xIncrease, y + (peiceForwardMultiplyer * 1)].ToUpper();
                                         }
-
+                                        else if (b.layout[x + xIncrease, y + (peiceForwardMultiplyer * 2)] != null)
+                                        {
+                                            currentID = b.layout[x + xIncrease, y + (peiceForwardMultiplyer * 2)].ToUpper();
+                                        }
+                                        else
+                                        {
+                                            hasPawnShield = false;
+                                            break;
+                                        }
+                                        if (currentID[1] == 'P' && currentID[0] == kingColour)
+                                        {
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            hasPawnShield = false;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -213,47 +232,81 @@ namespace ConsoleChess.AI.Variations
             }
 
             List<Move> movesToSearch = new List<Move>();
-            if (maxDepth >= 2)
+            List<MoveResult> movesResultsToSearch = new List<MoveResult>();
+            if (maxDepth >= 2) //if the depth is 2 or more
             {
                 List<MoveResult> firstResult = new List<MoveResult>();
-                foreach (Move move in all)
+                Parallel.For<List<MoveResult>>(0, all.Count, () => new List<MoveResult>(), (i, loop, threadResults) => //multithreaded for loop
                 {
-                    firstResult.Add(getBestCounter(move, b, isWhite));
+                    threadResults.Add(getBestCounter(all[(int)i], b, isWhite));
+                    return threadResults;//return the thread results
+                },
+                (threadResults) => {
+                    lock (moveLock)//lock the list
+                    {
+                        firstResult.AddRange(threadResults);//add the thread results to the results list
+                    }
+                });
+
+                List<MoveResult> prunedFirstResult = prune(firstResult);//prune
+
+                if (prunedFirstResult.Count > 1)//if the prune is more than one add the moves
+                {
+                    foreach (MoveResult mr in prunedFirstResult)
+                    {
+                        movesToSearch.Add(mr.originalMove);
+                    }
                 }
-                foreach (MoveResult mr in prune(firstResult))
+                else // if the prune is one or less add the move result
                 {
-                    movesToSearch.Add(mr.originalMove);
+                    foreach (MoveResult mr in prunedFirstResult)
+                    {
+                        movesResultsToSearch.Add(mr);
+                    }
                 }
             }
-            else
+            else // if the depth is less than 2, search all
             {
                 movesToSearch = all;
             }
 
             List<MoveResult> results = new List<MoveResult>();
-            Parallel.For<List<MoveResult>>(0, movesToSearch.Count, () => new List<MoveResult>(), (i, loop, threadResults) => //multithreaded for loop
+            List<MoveResult> r = new List<MoveResult>();
+            if (movesToSearch.Count > 1) //if the moves to search is greater than 1
             {
-                threadResults.Add(getMoveFirstIteration(movesToSearch[(int)i], b, isWhite));
-                return threadResults;//return the thread results
-            },
-            (threadResults) => {
-                lock (moveLock)//lock the list
+                Parallel.For<List<MoveResult>>(0, movesToSearch.Count, () => new List<MoveResult>(), (i, loop, threadResults) => //multithreaded for loop
                 {
-                    results.AddRange(threadResults);//add the thread results to the results list
-                }
-            });
+                    threadResults.Add(getMoveFirstIteration(movesToSearch[(int)i], b, isWhite));
+                    return threadResults;//return the thread results
+                },
+                (threadResults) =>
+                {
+                    lock (moveLock)//lock the list
+                    {
+                        results.AddRange(threadResults);//add the thread results to the results list
+                    }
+                });
 
-            foreach (MoveResult result in results)
+                foreach (MoveResult result in results)
+                {
+                    Console.WriteLine(result.ToString());
+                }
+
+                r = prune(results, true);
+            }
+            else if (movesToSearch.Count == 1)
             {
-                Console.WriteLine(result.ToString());
+                return movesToSearch[0];
+            }
+            else
+            {
+                r = movesResultsToSearch;
             }
 
-            List<MoveResult> r = prune(results, true);
-
             Console.WriteLine("Highest results");
-            foreach (MoveResult result in r)
+            foreach (MoveResult highestFinalResults in r)
             {
-                Console.WriteLine(result.ToString());
+                Console.WriteLine(highestFinalResults.ToString());
             }
 
             Random random = new Random();

@@ -74,6 +74,11 @@ namespace ConsoleChess.GameRunning
                 layout[p.location.getXCoord(), p.location.getYCoord()] = p.id;
             }
         }
+
+        public void makeMove(string s)
+        {
+            makeMove(new Move(s));
+        }
         public void makeMove(Move move)
         {
             IPieces moving = allPeices.Where(o => o.location.Equals(move.fromLocation)).Select(o => o).FirstOrDefault();
@@ -83,6 +88,9 @@ namespace ConsoleChess.GameRunning
                 int directionOfTravel = move.fromLocation.getXCoord() - move.toLocation.getXCoord();
                 if (Math.Abs(directionOfTravel) > 1) //check if attempting to castle
                 {
+                    King k = (King)moving;
+                    k.hasCastled = true;
+                    moving = k; 
                     Location rookMoveFrom = null;
                     Location rookMoveTo = null;
                     if (directionOfTravel > 0)
@@ -105,8 +113,31 @@ namespace ConsoleChess.GameRunning
                     }
                 }
             }
+            //promotion
+            if (moving.id[1] == 'P')
+            {
+                char endYRank = moving.isWhite ? '8' : '1';
+                if (move.toLocation.ToString()[1] == endYRank)
+                {
+                    Pawn p = (Pawn)moving;
+                    Board copy = this.DeepCopy();
+                    copy.allPeices.Remove(moving);
+                    copy.addPeice('N', p.isWhite, move.toLocation.ToString());
+                    copy.updateLayout();
+                    if (copy.isCheckmate(!p.isWhite))
+                    {
+                        p.moveType = 'N';
+                    }
+                    else
+                    {
+                        p.moveType = 'Q';
+                    }
+                    moving = p;
+                }
+            }
+
             IPieces taken = allPeices.Where(o => o.location.Equals(move.toLocation)).Select(o => o).FirstOrDefault();
-            //taken.location = new Location();            
+            //taken.location = new Location();
             allPeices.Remove(taken);
             allPeices.Remove(moving);
             moving.location = move.toLocation;
@@ -181,10 +212,10 @@ namespace ConsoleChess.GameRunning
                     {
                         Location l = new Location(x, y);
                         IPieces current = this.allPeices.Where(o => o.location.XLocation == l.XLocation && o.location.YLocation == l.YLocation).Select(o => o).FirstOrDefault();
-                        string toWrite = current.id[1] != 'P' ? current.id[1].ToString(): ((Pawn)current).moveType.ToString();                                                
-                        Console.ForegroundColor = current.isWhite ? whiteForgroud : blackForgroud;    
+                        string toWrite = current.id[1] != 'P' ? current.id[1].ToString(): ((Pawn)current).moveType.ToString();
+                        Console.ForegroundColor = current.isWhite ? whiteForgroud : blackForgroud;
                         Console.Write("  " + toWrite + "  ");
-                    }                    
+                    }
                 }
 
                 Console.BackgroundColor = ConsoleColor.Black;
@@ -289,7 +320,11 @@ namespace ConsoleChess.GameRunning
                         string current = layout[fromXCoord + x, fromYCoord + y];
                         if (!String.IsNullOrEmpty(current))
                         {
-                            if (current[0] == oppColourChar && current[1] == 'N')
+                            current = current.ToUpper();
+                            if (current[0] == oppColourChar && 
+                                 (current[1] == 'N' ||
+                                 (current[1] == 'P' &&
+                                   ((Pawn)allPeices.Where(o => o.id.ToUpper() == current).Select(o => o).FirstOrDefault()).moveType == 'N')))
                             {
                                 return true;
                             }
@@ -323,7 +358,7 @@ namespace ConsoleChess.GameRunning
                     if (!String.IsNullOrEmpty(layout[fromXCoord + x, fromYCoord + forwardMultiplyer]))
                     {
                         string current = layout[fromXCoord + x, fromYCoord + forwardMultiplyer];
-                        if (current[0] == oppColourChar && current[1] == 'P')
+                        if (current[0] == oppColourChar && current[1] == 'P' && ((Pawn)allPeices.Where(o => o.id.ToUpper() == current).Select(o => o).FirstOrDefault()).moveType == 'P')
                         {
                             return true;
                         }
@@ -350,7 +385,9 @@ namespace ConsoleChess.GameRunning
                     string current = layout[fromXCoord + (x * count), fromYCoord + (y * count)];
                     if (!String.IsNullOrEmpty(current))
                     {
-                        if (current[0] == oppColourChar && leathalPeices.Contains(current[1]))
+                        if (current[0] == oppColourChar && 
+                             (leathalPeices.Contains(current[1]) ||
+                             (current[1] == 'P' && leathalPeices.Contains(((Pawn)allPeices.Where(o => o.id.ToUpper() == current).Select(o => o).FirstOrDefault()).moveType))))
                         {
                             return true;
                         }

@@ -33,6 +33,48 @@ namespace UnitTest
         public void PawnForwardObstructed()
         {
         }
+        [TestMethod]
+        public void PawnPromoteToKnightBlack()
+        {
+            Board b = new Board(true);
+            b.addPeice('K', true, "E2");
+            b.addPeice('K', false, "E8");
+            b.addPeice('R', false, "F3");
+            b.addPeice('P', false, "G2");
+            b.addPeice('R', false, "D1");
+            b.addPeice('N', false, "E5");
+            b.addPeice('B', false, "A4");
+            Assert.IsNotNull(b.allPeices);
+            Assert.AreEqual("    k                       n   b            r      K p    r    ", b.printAsString());
+            b.makeMove("G2:G1");
+            Assert.AreEqual("    k                       n   b            r      K      r  n ", b.printAsString());
+            Assert.IsTrue(b.isCheckmate(true));
+        }
+        [TestMethod]
+        public void PawnPromoteToQueenWhite()
+        {
+            Board b = new Board(true);
+            b.addPeice('K', true, "E1");
+            b.addPeice('K', false, "E7");
+            b.addPeice('P', true, "G7");
+            Assert.IsNotNull(b.allPeices);
+            Assert.AreEqual("            k P                                             K   ", b.printAsString());
+            b.makeMove("G7:G8");
+            Assert.AreEqual("      Q     k                                               K   ", b.printAsString());
+        }
+
+        [TestMethod]
+        public void PawnPromoteToQueenBlack()
+        {
+            Board b = new Board(true);
+            b.addPeice('K', true, "E2");
+            b.addPeice('K', false, "E8");
+            b.addPeice('P', false, "G2");
+            Assert.IsNotNull(b.allPeices);
+            Assert.AreEqual("    k                                               K p         ", b.printAsString());
+            b.makeMove("G2:G1");
+            Assert.AreEqual("    k                                               K         q ", b.printAsString());
+        }
         #endregion
         #region Bishop
         #endregion

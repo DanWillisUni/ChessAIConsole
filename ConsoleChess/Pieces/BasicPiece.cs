@@ -53,7 +53,7 @@ namespace ConsoleChesss
             {
                 return getPossibleMovesRook(pieceToMove, board);
             }
-            else if (pieceToMove.moveType == 'K')
+            else if (pieceToMove.moveType == 'N')
             {
                 return getPossibleMovesKnight(pieceToMove, board);
             }
@@ -65,7 +65,7 @@ namespace ConsoleChesss
 
             if (Board.isOnBoard(fromXCoord, fromYCoord + forwardMultiplyer))
             {
-                if (String.IsNullOrEmpty(board.layout[fromXCoord, fromYCoord + forwardMultiplyer]) && pieceToMove.numberOfMoves == 0)
+                if (String.IsNullOrEmpty(board.layout[fromXCoord, fromYCoord + forwardMultiplyer]))
                 {
                     if (Board.isOnBoard(fromXCoord, fromYCoord + (2 * forwardMultiplyer)) && pieceToMove.numberOfMoves == 0)
                     {
@@ -95,7 +95,6 @@ namespace ConsoleChesss
             }
 
             //still need enpassant
-            //still need promotion
 
             //return removeInCheck(moves, pieceToMove.isWhite, board);
             return moves;
@@ -197,7 +196,6 @@ namespace ConsoleChesss
                 }
             }
 
-            //and not in check
             if (pieceToMove.numberOfMoves == 0 && includeCastle && !board.isInCheck(pieceToMove.isWhite))
             {
                 //queenside
@@ -209,7 +207,8 @@ namespace ConsoleChesss
                     if (rook != null)
                     {
                         if (rook.id[0] == pieceToMove.id[0] &&
-                            rook.id[1] == 'R')
+                            rook.id[1] == 'R' &&
+                            rook.numberOfMoves == 0)
                         {
                             List<string> locationsToCheck = new List<string>();
                             locationsToCheck.Add(new Location(fromXCoord - 1, fromYCoord).ToString());
@@ -241,7 +240,8 @@ namespace ConsoleChesss
                     if (rook != null)
                     {
                         if (rook.id[0] == pieceToMove.id[0] &&
-                            rook.id[1] == 'R' )
+                            rook.id[1] == 'R' &&
+                            rook.numberOfMoves == 0)
                         {
                             List<string> locationsToCheck = new List<string>();
                             locationsToCheck.Add(new Location(fromXCoord + 1, fromYCoord).ToString());

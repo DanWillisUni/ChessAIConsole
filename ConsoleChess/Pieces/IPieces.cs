@@ -9,7 +9,7 @@ using static ConsoleChess.AI.ExtensionMethods;
 namespace ConsoleChess.Pieces
 {
     public interface IPieces
-    {        
+    {
         public string id { get; set; }
         public bool isWhite { get; set; }
         public int numberOfMoves { get; set; }
