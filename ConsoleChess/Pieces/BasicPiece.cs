@@ -83,9 +83,26 @@ namespace ConsoleChesss
             {
                 if (Board.isOnBoard(fromXCoord + x, fromYCoord + forwardMultiplyer))
                 {
+                    string takingId = null;
                     if (!String.IsNullOrEmpty(board.layout[fromXCoord + x, fromYCoord + forwardMultiplyer]))
                     {
-                        char takeColour = (board.layout[fromXCoord + x, fromYCoord + forwardMultiplyer])[0];
+                        takingId = board.layout[fromXCoord + x, fromYCoord + forwardMultiplyer];
+                    } 
+                    else if (!String.IsNullOrEmpty(board.layout[fromXCoord + x, fromYCoord]))
+                    {
+                        if (board.layout[fromXCoord + x, fromYCoord][1] == 'P' &&
+                            board.pastMoves[board.pastMoves.Count - 1].toLocation.getXCoord() == fromXCoord + x &&
+
+                            board.pastMoves[board.pastMoves.Count - 1].toLocation.getYCoord() == fromYCoord &&
+                            board.pastMoves[board.pastMoves.Count - 1].fromLocation.getXCoord() == fromXCoord + x &&
+                            board.pastMoves[board.pastMoves.Count - 1].fromLocation.getYCoord() == fromYCoord + (2 * forwardMultiplyer))
+                        {
+                            takingId = board.layout[fromXCoord + x, fromYCoord];
+                        }
+                    }
+                    if (takingId != null)
+                    {
+                        char takeColour = takingId[0];
                         if (pieceToMove.isWhite ? takeColour == 'B' : takeColour == 'W')
                         {
                             moves.Add(new Move(pieceToMove.location, new Location(fromXCoord + x, fromYCoord + forwardMultiplyer)));
@@ -93,8 +110,6 @@ namespace ConsoleChesss
                     }
                 }
             }
-
-            //still need enpassant
 
             //return removeInCheck(moves, pieceToMove.isWhite, board);
             return moves;

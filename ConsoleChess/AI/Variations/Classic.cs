@@ -3,7 +3,6 @@ using ConsoleChess.AI.Openings;
 using ConsoleChess.GameRunning;
 using ConsoleChess.Model.BoardHelpers;
 using ConsoleChess.Pieces;
-using ConsoleChesss;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -78,7 +77,6 @@ namespace ConsoleChess.AI.Variations
         private double getScore(Board b, bool isWhite)
         {
             double kingSquareNotThreatenedCoeffiecient = 0.1;
-            double kingSquareNotThreatenedEndCoeffiecient = 0.3;
             double peiceSquaredValueCoefficient = 1;
             double mobilityCoeffiecient = 0.1;
             double valueOfThreateningCoefficient = 0.1;
@@ -86,14 +84,33 @@ namespace ConsoleChess.AI.Variations
             double blockedPawnCoefficient = 0.5;
             double pawnShieldCoefficient = 2;
             double castlingCoefficient = 2;
+            double previousMovePunishment = 1;
+            double turnCoefficient = 0.5;
             if (ComputerBase.isEndGame(b))
             {
-                kingSquareNotThreatenedCoeffiecient = kingSquareNotThreatenedEndCoeffiecient;
+                kingSquareNotThreatenedCoeffiecient = 0.3;
+                castlingCoefficient = 3;
             }
 
             double r = 0;
             int forwardMultiplyer = isWhite ? 1 : -1;
             char isWhiteChar = isWhite ? 'W' : 'B';
+
+            if (b.layout[b.pastMoves[b.pastMoves.Count - 1].toLocation.getXCoord(), b.pastMoves[b.pastMoves.Count - 1].toLocation.getYCoord()][0] == isWhiteChar) //if last move was scorer
+            {
+                r -= turnCoefficient;
+                if (b.pastMoves.Count >= 3)
+                {
+                    if (b.pastMoves[b.pastMoves.Count - 3].fromLocation.Equals(b.pastMoves[b.pastMoves.Count - 1].toLocation))
+                    {
+                        r -= previousMovePunishment;
+                    }
+                }
+            }
+            else
+            {
+                r += turnCoefficient;
+            }
 
             foreach (IPieces p in b.allPeices)
             {
@@ -248,7 +265,7 @@ namespace ConsoleChess.AI.Variations
                     }
                 });
 
-                List<MoveResult> prunedFirstResult = prune(firstResult);//prune
+                List<MoveResult> prunedFirstResult = prune(firstResult, false, true);//prune
 
                 if (prunedFirstResult.Count > 1)//if the prune is more than one add the moves
                 {
@@ -355,19 +372,28 @@ namespace ConsoleChess.AI.Variations
                 return prune(moveResultsSecond, true)[0];
             }
         }
-        private List<MoveResult> prune(List<MoveResult> all, bool getHighest = false)
+        private List<MoveResult> prune(List<MoveResult> all, bool getHighest = false, bool debug = false)
         {
             if (all.Count > this.maxWidth && this.maxWidth > 0)
             {
-                List<MoveResult> ordered = all.OrderByDescending(o => o.score).ToList();
-                double scoreToBeat = ordered[0].score;
+                List<double> scores = new List<double>();
+                foreach(MoveResult mr in all)
+                {
+                    scores.Add(mr.score);
+                }
+                List<double> orderedScores = scores.OrderByDescending(o => o).ToList();
+                double scoreToBeat = orderedScores[0];
                 if (!getHighest)
                 {
-                    double maxWidthScore = ordered[this.maxWidth].score;
-                    double deivationScore = (ordered[0].score - Math.Round(0.1 * Math.Abs(ordered[0].score)));
+                    double maxWidthScore = orderedScores[this.maxWidth];
+                    double deivationScore = Math.Round(orderedScores[0] - Math.Round(0.2 * Math.Abs(orderedScores[0]), 2), 2);
                     scoreToBeat = Math.Max(maxWidthScore, deivationScore);
+                    if(debug)
+                    {
+                        Console.WriteLine($"Hi: {orderedScores[0]}, maxWidth: {maxWidthScore}, div: {deivationScore}, stb: {scoreToBeat}");
+                    }
                 }
-                using (IEnumerator<MoveResult> resultsEnumerator = ordered.GetEnumerator())
+                using (IEnumerator<MoveResult> resultsEnumerator = all.GetEnumerator())
                 {
                     List<MoveResult> toRGT = new List<MoveResult>();
                     List<MoveResult> toREQ = new List<MoveResult>();

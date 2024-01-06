@@ -28,6 +28,30 @@ namespace UnitTest
         [TestMethod]
         public void EnPassent()
         {
+            Board b = new Board(true);
+            b.addPeice('P', true, "H2");
+            b.addPeice('P', true, "F2");
+            b.addPeice('P', false, "G5");
+            Assert.IsNotNull(b.allPeices);
+            b.makeMove("F2:F3");
+            b.makeMove("G5:G4");
+            b.makeMove("F3:F4");
+            //check board
+            IPieces blackPawn = b.allPeices.Where(o => o.location.Equals(new Location("G4"))).Select(o => o).FirstOrDefault();
+            Assert.IsNotNull(blackPawn);
+            List<Move> possibleMoves = blackPawn.getPossibleMoves(b);
+            Assert.IsNotNull(possibleMoves);
+            Assert.IsTrue(possibleMoves.Count == 1);
+            Assert.IsTrue(possibleMoves.Contains(new Move("G4:G3")));
+
+            b.makeMove("H2:H4");
+            possibleMoves = blackPawn.getPossibleMoves(b);
+            Assert.IsNotNull(possibleMoves);
+            Assert.IsTrue(possibleMoves.Count == 2);
+            Assert.IsTrue(possibleMoves.Contains(new Move("G4:G3")));
+            Assert.IsTrue(possibleMoves.Contains(new Move("G4:H3")));
+            b.makeMove("G4:H3");
+            //check board
         }
         [TestMethod]
         public void PawnForwardObstructed()

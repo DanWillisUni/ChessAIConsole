@@ -14,7 +14,7 @@ namespace ConsoleChess.GameRunning
     {
         public List<IPieces> allPeices { get; set; }
         public  List<Move> pastMoves { get; set; }
-        public string[,] layout { get; set; }                
+        public string[,] layout { get; set; }
 
         public Board() : this(false) { }
         public Board(bool clean=false)
@@ -82,6 +82,7 @@ namespace ConsoleChess.GameRunning
         public void makeMove(Move move)
         {
             IPieces moving = allPeices.Where(o => o.location.Equals(move.fromLocation)).Select(o => o).FirstOrDefault();
+            IPieces taken = allPeices.Where(o => o.location.Equals(move.toLocation)).Select(o => o).FirstOrDefault();
             //castling
             if (moving.id[1] == 'K' && moving.numberOfMoves == 0)
             {
@@ -113,9 +114,11 @@ namespace ConsoleChess.GameRunning
                     }
                 }
             }
-            //promotion
+
             if (moving.id[1] == 'P')
             {
+                int forwardMultiplyer = moving.isWhite ? 1 : -1;
+                //promotion
                 char endYRank = moving.isWhite ? '8' : '1';
                 if (move.toLocation.ToString()[1] == endYRank)
                 {
@@ -134,9 +137,18 @@ namespace ConsoleChess.GameRunning
                     }
                     moving = p;
                 }
+                //en passent
+                else if (Math.Abs(move.toLocation.getYCoord() - move.fromLocation.getYCoord()) == 1 &&
+                    Math.Abs(move.toLocation.getXCoord() - move.fromLocation.getXCoord()) == 1 &&
+                    Math.Abs(pastMoves[pastMoves.Count - 1].fromLocation.getYCoord() - pastMoves[pastMoves.Count - 1].fromLocation.getYCoord()) == 2 &&
+                    pastMoves[pastMoves.Count - 1].fromLocation.getXCoord() == pastMoves[pastMoves.Count - 1].fromLocation.getXCoord() &&
+                    pastMoves[pastMoves.Count - 1].fromLocation.getXCoord() == move.toLocation.getXCoord() &&
+                    pastMoves[pastMoves.Count - 1].fromLocation.getYCoord() == move.toLocation.getYCoord() + forwardMultiplyer)
+                {
+                    taken = allPeices.Where(o => o.location.Equals(pastMoves[pastMoves.Count - 1].toLocation)).Select(o => o).FirstOrDefault();
+                }
             }
 
-            IPieces taken = allPeices.Where(o => o.location.Equals(move.toLocation)).Select(o => o).FirstOrDefault();
             //taken.location = new Location();
             allPeices.Remove(taken);
             allPeices.Remove(moving);
